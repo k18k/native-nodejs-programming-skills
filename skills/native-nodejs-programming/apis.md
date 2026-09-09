@@ -50,6 +50,7 @@
 - [single-executable-applications.md]('./api/single-executable-applications.md')
 - [sqlite.md]('./api/sqlite.md')
 - [stream.md]('./api/stream.md')
+- [stream_iter.md]('./api/stream_iter.md')
 - [string_decoder.md]('./api/string_decoder.md')
 - [synopsis.md]('./api/synopsis.md')
 - [test.md]('./api/test.md')

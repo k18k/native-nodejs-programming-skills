@@ -591,7 +591,6 @@ the error passed to the callback will be an `AbortError`:
 
 ```cjs
 const { fork } = require('node:child_process');
-const process = require('node:process');
 
 if (process.argv[2] === 'child') {
   setTimeout(() => {
@@ -933,7 +932,6 @@ Example of a long-running process, by detaching and also ignoring its parent
 
 ```cjs
 const { spawn } = require('node:child_process');
-const process = require('node:process');
 
 const subprocess = spawn(process.argv[0], ['child_program.js'], {
   detached: true,
@@ -1077,7 +1075,6 @@ pipes between the parent and child. The value is one of the following:
 
 ```cjs
 const { spawn } = require('node:child_process');
-const process = require('node:process');
 
 // Child will use parent's stdios.
 spawn('prg', [], { stdio: 'inherit' });
@@ -1717,10 +1714,14 @@ may not actually terminate the process.
 
 See kill(2) for reference.
 
-On Windows, where POSIX signals do not exist, the `signal` argument will be
-ignored except for `'SIGKILL'`, `'SIGTERM'`, `'SIGINT'` and `'SIGQUIT'`, and the
-process will always be killed forcefully and abruptly (similar to `'SIGKILL'`).
-See [Signal Events][] for more details.
+On Windows, where POSIX signals do not exist, signals are handled as follows.
+`'SIGKILL'`, `'SIGTERM'`, `'SIGINT'` and `'SIGQUIT'` terminate the process
+forcefully and abruptly (similar to `'SIGKILL'`); any other signal whose name is
+known on Windows (such as `'SIGHUP'`) does the same. `'SIGWINCH'` is not
+terminal and is not coerced: `subprocess.kill()` throws an `ENOSYS` error and
+the child keeps running. A signal name that does not exist on Windows (such as
+`'SIGSTOP'`) throws an `ERR_UNKNOWN_SIGNAL` error. See [Signal Events][] for more
+details.
 
 On Linux, child processes of child processes will not be terminated
 when attempting to kill their parent. This is likely to happen when running a
@@ -1833,7 +1834,6 @@ process to wait for the child process to exit before exiting itself.
 
 ```cjs
 const { spawn } = require('node:child_process');
-const process = require('node:process');
 
 const subprocess = spawn(process.argv[0], ['child_program.js'], {
   detached: true,
@@ -2289,7 +2289,6 @@ the child and the parent processes.
 
 ```cjs
 const { spawn } = require('node:child_process');
-const process = require('node:process');
 
 const subprocess = spawn(process.argv[0], ['child_program.js'], {
   detached: true,
