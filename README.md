@@ -1,14 +1,15 @@
 # Native Node.js Programming
 
-[![Node.js](https://img.shields.io/badge/Node-24%2B-brightgreen?logo=node.js\&logoColor=white)](https://nodejs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6.0.2-blue?logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
+[![Node.js](https://img.shields.io/badge/Node-26%2B-brightgreen?logo=node.js\&logoColor=white)](https://nodejs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-blue?logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
 [![Build](https://img.shields.io/github/actions/workflow/status/k18k/native-nodejs-programming-skills/update-nodejs-skill.yml?branch=main&label=workflow)](https://github.com/k18k/native-nodejs-programming-skills/actions)
+[![API docs](https://img.shields.io/badge/API%20docs-Node%2026-brightgreen?logo=node.js\&logoColor=white)](https://nodejs.org/docs/latest-v26.x/api/)
 
 ---
 
 Use this skill when creating, reviewing, or modifying **native Node.js applications** written in TypeScript without frameworks, bundlers, or build steps.
 
-**Target runtime:** Node.js 24+
+**Target runtime:** Node.js 26+ with TypeScript 7
 **Type:** Native ESM + TypeScript (erasable type stripping)
 
 ---
@@ -107,7 +108,7 @@ import { config } from "#config.ts";
 ```json
 {
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": { "node": ">=26" },
   "scripts": {
     "check": "tsc --noEmit",
     "test": "node --test",
@@ -116,7 +117,7 @@ import { config } from "#config.ts";
   },
   "devDependencies": {
     "@types/node": "latest",
-    "typescript": "latest"
+    "typescript": "^7.0.2"
   }
 }
 ```
@@ -139,5 +140,3 @@ import { config } from "#config.ts";
   }
 }
 ```
-
-Do you want me to do that as well?

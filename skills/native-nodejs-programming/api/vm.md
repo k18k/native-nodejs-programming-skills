@@ -1009,7 +1009,9 @@ const module2 = new vm.SourceTextModule('const a = 1;', { cachedData });
 
 <!-- YAML
 changes:
-  - version: v24.4.0
+  - version:
+    - v24.4.0
+    - v22.20.0
     pr-url: https://github.com/nodejs/node/pull/20300
     description: This is deprecated in favour of `sourceTextModule.moduleRequests`.
 -->
@@ -1057,7 +1059,9 @@ ECMAScript specification.
 ### `sourceTextModule.instantiate()`
 
 <!-- YAML
-added: v24.8.0
+added:
+ - v24.8.0
+ - v22.21.0
 -->
 
 * Returns: {undefined}
@@ -1075,7 +1079,9 @@ modules in the cycle before calling this method.
 ### `sourceTextModule.linkRequests(modules)`
 
 <!-- YAML
-added: v24.8.0
+added:
+ - v24.8.0
+ - v22.21.0
 -->
 
 * `modules` {vm.Module\[]} Array of `vm.Module` objects that this module depends on.
@@ -1118,7 +1124,9 @@ After each module in the `modules` array is linked, call
 ### `sourceTextModule.moduleRequests`
 
 <!-- YAML
-added: v24.4.0
+added:
+  - v24.4.0
+  - v22.20.0
 -->
 
 * Type: {ModuleRequest\[]} Dependencies of this module.
@@ -1257,7 +1265,9 @@ added:
  - v13.0.0
  - v12.16.0
 changes:
-  - version: v24.8.0
+  - version:
+     - v24.8.0
+     - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/59000
     description: No longer need to call `syntheticModule.link()` before
                  calling this method.
@@ -1294,7 +1304,9 @@ const vm = require('node:vm');
 ## Type: `ModuleRequest`
 
 <!-- YAML
-added: v24.4.0
+added:
+  - v24.4.0
+  - v22.20.0
 -->
 
 * Type: {Object}

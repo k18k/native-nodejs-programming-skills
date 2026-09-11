@@ -109,7 +109,9 @@ callbackFunction((err, ret) => {
 ## `util.convertProcessSignalToExitCode(signal)`
 
 <!-- YAML
-added: v24.14.0
+added:
+ - v25.4.0
+ - v24.14.0
 -->
 
 * `signal` {string} A signal name (e.g. `'SIGTERM'`)
@@ -280,7 +282,9 @@ logging when only using `util.debuglog().enabled`.
 <!-- YAML
 added: v0.8.0
 changes:
-  - version: v24.12.0
+  - version:
+      - v25.2.0
+      - v24.12.0
     pr-url: https://github.com/nodejs/node/pull/59982
     description: Add options object with modifyPrototype to conditionally
                  modify the prototype of the deprecated object.
@@ -693,8 +697,7 @@ anotherFunction();
 
 It is possible to reconstruct the original locations by setting the option `sourceMap` to `true`.
 If the source map is not available, the original location will be the same as the current location.
-When the `--enable-source-maps` flag is enabled, for example when using `--experimental-transform-types`,
-`sourceMap` will be true by default.
+When the `--enable-source-maps` flag is enabled,`sourceMap` will be true by default.
 
 ```ts
 import { getCallSites } from 'node:util';
@@ -803,7 +806,9 @@ fs.access('file/that/does/not/exist', (err) => {
 ## `util.setTraceSigInt(enable)`
 
 <!-- YAML
-added: v24.6.0
+added:
+ - v24.6.0
+ - v22.19.0
 -->
 
 * `enable` {boolean}
@@ -906,6 +911,11 @@ stream.write('With ES6');
 <!-- YAML
 added: v0.3.0
 changes:
+  - version:
+    - v25.0.0
+    pr-url: https://github.com/nodejs/node/pull/59710
+    description: The util.inspect.styles.regexp style is now a method that is
+                 invoked for coloring the stringified regular expression.
   - version:
     - v17.3.0
     - v16.14.0
@@ -1356,7 +1366,12 @@ The default styles and associated colors are:
 * `name`: (no styling)
 * `null`: `bold`
 * `number`: `yellow`
-* `regexp`: `red`
+* `regexp`: A method that colors character classes, groups, assertions, and
+  other parts for improved readability. To customize the coloring, change the
+  `colors` property. It is set to
+  `['red', 'green', 'yellow', 'cyan', 'magenta']` by default and may be
+  adjusted as needed. The array is repetitively iterated through depending on
+  the "depth".
 * `special`: `cyan` (e.g., `Proxies`)
 * `string`: `green`
 * `symbol`: `green`
@@ -1367,6 +1382,17 @@ terminals. To verify color support use [`tty.hasColors()`][].
 
 Predefined control codes are listed below (grouped as "Modifiers", "Foreground
 colors", and "Background colors").
+
+#### Complex custom coloring
+
+It is possible to define a method as style. It receives the stringified value
+of the input. It is invoked in case coloring is active and the type is
+inspected.
+
+Example: `util.inspect.styles.regexp(value)`
+
+* `value` {string} The string representation of the input type.
+* Returns: {string} The adjusted representation of `object`.
 
 #### Modifiers
 
@@ -1873,7 +1899,7 @@ console.log(JSON.stringify(myMIMES));
 ### `MIMEType.parse(string)`
 
 <!--
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `string` {string} The input MIME to parse
@@ -2262,7 +2288,9 @@ added:
   - v21.7.0
   - v20.12.0
 changes:
-  - version: v24.10.0
+  - version:
+     - v24.10.0
+     - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/59925
     description: This API is no longer experimental.
 -->
@@ -2532,10 +2560,12 @@ added:
   - v21.7.0
   - v20.12.0
 changes:
-  - version: v24.16.0
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/61556
     description: Add support for hexadecimal colors.
-  - version: v24.2.0
+  - version:
+      - v24.2.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/58437
     description: Added the `'none'` format as a non-op format.
   - version:
@@ -2896,7 +2926,9 @@ added:
  - v19.7.0
  - v18.16.0
 changes:
- - version: v24.0.0
+ - version:
+   - v24.0.0
+   - v22.16.0
    pr-url: https://github.com/nodejs/node/pull/57765
    description: Change stability index for this feature from Experimental to Stable.
 -->
@@ -3270,7 +3302,9 @@ For further information on `napi_create_external`, refer to
 ### `util.types.isFloat16Array(value)`
 
 <!-- YAML
-added: v24.0.0
+added:
+ - v24.0.0
+ - v22.16.0
 -->
 
 * `value` {any}

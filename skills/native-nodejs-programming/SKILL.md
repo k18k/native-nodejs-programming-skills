@@ -8,12 +8,12 @@ description: Use this skill whenever creating, reviewing, or modifying a native 
 
 Use this skill for native Node.js apps written in TypeScript and executed directly by Node.js.
 
-Target runtime: **Node.js 24+**.
+Target runtime: **Node.js 26+ with TypeScript 7**.
 
 ## NodeJS Internal Modules APIs
 
 If you are not fully confident with the usage of a API, reference its documentation.
-The documentation can be found in [./apis.md](./apis.md)
+The bundled Node.js 26 documentation can be found in [./apis.md](./apis.md).
 
 ## Hard rules
 
@@ -50,7 +50,7 @@ Before using a Node.js API, check its stability level.
 {
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=26"
   },
   "enginesStrict": true,
   "scripts": {
@@ -61,7 +61,7 @@ Before using a Node.js API, check its stability level.
   },
   "devDependencies": {
     "@types/node": "latest",
-    "typescript": "latest"
+    "typescript": "^7.0.2"
   }
 }
 ```
@@ -274,9 +274,11 @@ test("mocks a function", (t) => {
 });
 ```
 
-## Timer mocks
+## Timer mocks (experimental)
 
-Use `context.mock.timers`.
+`context.mock.timers` has Stability 1 and therefore requires explicit human
+approval under this skill's stability rule. When approved, use it through the
+test context so it is automatically restored after the test.
 
 ```ts
 import test from "node:test";
@@ -347,7 +349,7 @@ test/
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=26"
   },
   "imports": {
     "#lib/*.ts": "./src/lib/*.ts"
@@ -360,7 +362,7 @@ test/
   },
   "devDependencies": {
     "@types/node": "latest",
-    "typescript": "latest"
+    "typescript": "^7.0.2"
   }
 }
 ```
@@ -420,7 +422,8 @@ test("greets by name", () => {
 Verify:
 
 * `package.json` has `"type": "module"`.
-* Node engine is `>=24`.
+* Node engine is `>=26`.
+* TypeScript is version 7 or newer.
 * `@types/node` is present.
 * `typescript` is present for `tsc --noEmit`.
 * `tsconfig.json` uses `module: "nodenext"`.

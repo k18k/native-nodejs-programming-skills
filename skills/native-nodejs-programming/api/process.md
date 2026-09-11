@@ -172,93 +172,6 @@ process, the `message` argument can contain data that JSON is not able
 to represent.
 See [Advanced serialization for `child_process`][] for more details.
 
-### Event: `'multipleResolves'`
-
-<!-- YAML
-added: v10.12.0
-deprecated:
-  - v17.6.0
-  - v16.15.0
--->
-
-> Stability: 0 - Deprecated
-
-* `type` {string} The resolution type. One of `'resolve'` or `'reject'`.
-* `promise` {Promise} The promise that resolved or rejected more than once.
-* `value` {any} The value with which the promise was either resolved or
-  rejected after the original resolve.
-
-The `'multipleResolves'` event is emitted whenever a `Promise` has been either:
-
-* Resolved more than once.
-* Rejected more than once.
-* Rejected after resolve.
-* Resolved after reject.
-
-This is useful for tracking potential errors in an application while using the
-`Promise` constructor, as multiple resolutions are silently swallowed. However,
-the occurrence of this event does not necessarily indicate an error. For
-example, [`Promise.race()`][] can trigger a `'multipleResolves'` event.
-
-Because of the unreliability of the event in cases like the
-[`Promise.race()`][] example above it has been deprecated.
-
-```mjs
-import process from 'node:process';
-
-process.on('multipleResolves', (type, promise, reason) => {
-  console.error(type, promise, reason);
-  setImmediate(() => process.exit(1));
-});
-
-async function main() {
-  try {
-    return await new Promise((resolve, reject) => {
-      resolve('First call');
-      resolve('Swallowed resolve');
-      reject(new Error('Swallowed reject'));
-    });
-  } catch {
-    throw new Error('Failed');
-  }
-}
-
-main().then(console.log);
-// resolve: Promise { 'First call' } 'Swallowed resolve'
-// reject: Promise { 'First call' } Error: Swallowed reject
-//     at Promise (*)
-//     at new Promise (<anonymous>)
-//     at main (*)
-// First call
-```
-
-```cjs
-process.on('multipleResolves', (type, promise, reason) => {
-  console.error(type, promise, reason);
-  setImmediate(() => process.exit(1));
-});
-
-async function main() {
-  try {
-    return await new Promise((resolve, reject) => {
-      resolve('First call');
-      resolve('Swallowed resolve');
-      reject(new Error('Swallowed reject'));
-    });
-  } catch {
-    throw new Error('Failed');
-  }
-}
-
-main().then(console.log);
-// resolve: Promise { 'First call' } 'Swallowed resolve'
-// reject: Promise { 'First call' } Error: Swallowed reject
-//     at Promise (*)
-//     at new Promise (<anonymous>)
-//     at main (*)
-// First call
-```
-
 ### Event: `'rejectionHandled'`
 
 <!-- YAML
@@ -756,7 +669,8 @@ process.on('SIGTERM', handle);
 * `'SIGTERM'` and `'SIGINT'` have default handlers on non-Windows platforms that
   reset the terminal mode before exiting with code `128 + signal number`. If one
   of these signals has a listener installed, its default behavior will be
-  removed (Node.js will no longer exit).
+  removed. Signal events are emitted asynchronously, so Node.js may exit before
+  the listener is called if the event loop is otherwise empty.
 * `'SIGPIPE'` is ignored by default. It can have a listener installed.
 * `'SIGHUP'` is generated on Windows when the console window is closed, and on
   other platforms under various similar conditions. See signal(7). It can have a
@@ -805,6 +719,42 @@ The `process.abort()` method causes the Node.js process to exit immediately and
 generate a core file.
 
 This feature is not available in [`Worker`][] threads.
+
+## `process.addUncaughtExceptionCaptureCallback(fn)`
+
+<!-- YAML
+added: v25.9.0
+-->
+
+> Stability: 1 - Experimental
+
+* `fn` {Function}
+
+The `process.addUncaughtExceptionCaptureCallback()` function adds a callback
+that will be invoked when an uncaught exception occurs, receiving the exception
+value as its first argument.
+
+Unlike [`process.setUncaughtExceptionCaptureCallback()`][], this function allows
+multiple callbacks to be registered and does not conflict with the
+[`domain`][] module. Callbacks are called in reverse order of registration
+(most recent first). If a callback returns `true`, subsequent callbacks
+and the default uncaught exception handling are skipped.
+
+```mjs
+import process from 'node:process';
+
+process.addUncaughtExceptionCaptureCallback((err) => {
+  console.error('Caught exception:', err.message);
+  return true; // Indicates exception was handled
+});
+```
+
+```cjs
+process.addUncaughtExceptionCaptureCallback((err) => {
+  console.error('Caught exception:', err.message);
+  return true; // Indicates exception was handled
+});
+```
 
 ## `process.allowedNodeEnvironmentFlags`
 
@@ -970,7 +920,9 @@ added:
   - v22.0.0
   - v20.13.0
 changes:
-  - version: v24.0.0
+  - version:
+    - v24.0.0
+    - v22.16.0
     pr-url: https://github.com/nodejs/node/pull/57765
     description: Change stability index for this feature from Experimental to Stable.
 -->
@@ -1135,7 +1087,9 @@ added:
   - v19.6.0
   - v18.15.0
 changes:
-  - version: v24.0.0
+  - version:
+    - v24.0.0
+    - v22.16.0
     pr-url: https://github.com/nodejs/node/pull/57765
     description: Change stability index for this feature from Experimental to Stable.
   - version:
@@ -1749,6 +1703,13 @@ that started the Node.js process. Symbolic links, if any, are resolved.
 added:
   - v23.11.0
   - v22.15.0
+changes:
+  - version: v26.1.0
+    pr-url: https://github.com/nodejs/node/pull/62878
+    description: A failed `execve(2)` system call now throws an exception
+                 instead of aborting the process. Native `AtExit`
+                 callbacks registered via the embedder API are no longer
+                 invoked before the `execve(2)` call.
 -->
 
 > Stability: 1 - Experimental
@@ -1765,10 +1726,19 @@ This is achieved by using the `execve` POSIX function and therefore no memory or
 resources from the current process are preserved, except for the standard input,
 standard output and standard error file descriptor.
 
-All other resources are discarded by the system when the processes are swapped, without triggering
-any exit or close events and without running any cleanup handler.
+On success, all other resources are discarded by the system when the
+processes are swapped, without triggering any exit or close events, without
+running any JavaScript cleanup handler (for example `process.on('exit')`),
+and without invoking native `AtExit` callbacks registered through the
+embedder API. Callers that need to run cleanup logic should do so before
+calling `process.execve()`.
 
-This function will never return, unless an error occurred.
+This function does not return on success. If the underlying `execve(2)`
+system call fails, an `Error` is thrown whose `code` property is set to the
+corresponding `errno` string (for example, `'ENOENT'` when `file` does not
+exist), with `syscall` set to `'execve'` and `path` set to `file`. When
+`execve(2)` fails the current process continues to run with its state
+unchanged, so a caller may handle the error and take another action.
 
 This function is not available on Windows or IBM i.
 
@@ -2052,7 +2022,12 @@ added:
  - v23.0.0
  - v22.10.0
 changes:
-  - version: v24.12.0
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/61803
+    description: Removed `transform` value.
+  - version:
+      - v25.2.0
+      - v24.12.0
     pr-url: https://github.com/nodejs/node/pull/60600
     description: Type stripping is now stable.
 -->
@@ -2061,8 +2036,7 @@ changes:
 
 * Type: {boolean|string}
 
-A value that is `"strip"` by default,
-`"transform"` if Node.js is run with `--experimental-transform-types`, and `false` if
+A value that is `"strip"` by default, and `false` if
 Node.js is run with `--no-strip-types`.
 
 ## `process.features.uv`
@@ -2303,7 +2277,9 @@ added:
   - v17.3.0
   - v16.14.0
 changes:
-  - version: v24.0.0
+  - version:
+    - v24.0.0
+    - v22.16.0
     pr-url: https://github.com/nodejs/node/pull/57765
     description: Change stability index for this feature from Experimental to Stable.
 -->
@@ -2737,7 +2713,9 @@ added:
   - v21.7.0
   - v20.12.0
 changes:
-  - version: v24.10.0
+  - version:
+     - v24.10.0
+     - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/59925
     description: This API is no longer experimental.
 -->
@@ -3186,6 +3164,7 @@ The available scopes are:
 * `child` - Child process spawning operations
 * `openssl.store` - Loading keys through OpenSSL STORE loaders
 * `worker` - Worker thread spawning operation
+* `ffi` - Foreign function interface operations
 
 ```js
 // Check if the process has permission to read the README file
@@ -3197,7 +3176,7 @@ process.permission.has('fs.read');
 ### `process.permission.drop(scope[, reference])`
 
 <!-- YAML
-added: v24.20.0
+added: v26.3.0
 -->
 
 > Stability: 1.1 - Active Development
@@ -3240,6 +3219,7 @@ The available scopes are the same as [`process.permission.has()`][]:
 * `child` - Child process spawning operations
 * `openssl.store` - Loading keys through OpenSSL STORE loaders
 * `worker` - Worker thread spawning operation
+* `net` - Network operations
 * `inspector` - Inspector operations
 * `wasi` - WASI operations
 * `addon` - Native addon operations
@@ -4107,6 +4087,11 @@ This implies calling `module.setSourceMapsSupport()` with an option
 
 <!-- YAML
 added: v9.3.0
+changes:
+  - version: v25.9.0
+    pr-url: https://github.com/nodejs/node/pull/61227
+    description: Use `process.addUncaughtExceptionCaptureCallback()` to
+      register multiple callbacks.
 -->
 
 * `fn` {Function|null}
@@ -4126,8 +4111,8 @@ To unset the capture function,
 method with a non-`null` argument while another capture function is set will
 throw an error.
 
-Using this function is mutually exclusive with using the deprecated
-[`domain`][] built-in module.
+To register multiple callbacks that can coexist, use
+[`process.addUncaughtExceptionCaptureCallback()`][] instead.
 
 ## `process.sourceMapsEnabled`
 
@@ -4307,7 +4292,9 @@ Thrown:
 ## `process.threadCpuUsage([previousValue])`
 
 <!-- YAML
-added: v23.9.0
+added:
+ - v23.9.0
+ - v22.19.0
 -->
 
 * `previousValue` {Object} A previous return value from calling
@@ -4646,7 +4633,6 @@ cases:
 [`Error`]: errors.md#class-error
 [`EventEmitter`]: events.md#class-eventemitter
 [`NODE_OPTIONS`]: cli.md#node_optionsoptions
-[`Promise.race()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/race
 [`Worker`]: worker_threads.md#class-worker
 [`Worker` constructor]: worker_threads.md#new-workerfilename-options
 [`console.error()`]: console.md#consoleerrordata-args
@@ -4659,6 +4645,7 @@ cases:
 [`net.Socket`]: net.md#class-netsocket
 [`os.constants.dlopen`]: os.md#dlopen-constants
 [`postMessageToThread()`]: worker_threads.md#worker_threadspostmessagetothreadthreadid-value-transferlist-timeout
+[`process.addUncaughtExceptionCaptureCallback()`]: #processadduncaughtexceptioncapturecallbackfn
 [`process.argv`]: #processargv
 [`process.config`]: #processconfig
 [`process.execPath`]: #processexecpath

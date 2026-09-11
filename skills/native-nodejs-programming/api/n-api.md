@@ -2287,7 +2287,9 @@ object such that no properties can be set on it, and no prototype.
 
 <!-- YAML
 changes:
-  - version: v24.13.1
+  - version:
+     - v25.5.0
+     - v24.13.1
     pr-url: https://github.com/nodejs/node/pull/58879
     description: Added `napi_float16_array` for Float16Array support.
 -->
@@ -2575,7 +2577,7 @@ JavaScript `ArrayBuffer`s are described in
 #### `node_api_create_external_sharedarraybuffer`
 
 <!-- YAML
-added: v24.16.0
+added: v26.1.0
 -->
 
 ```c
@@ -2682,7 +2684,9 @@ ECMAScript Language Specification.
 #### `node_api_create_object_with_properties`
 
 <!-- YAML
-added: v24.12.0
+added:
+  - v25.2.0
+  - v24.12.0
 -->
 
 > Stability: 1 - Experimental
@@ -2779,7 +2783,7 @@ Language Specification.
 added: v8.0.0
 napiVersion: 1
 changes:
-  - version: v24.18.0
+  - version: v26.2.0
     pr-url: https://github.com/nodejs/node/pull/62710
     description: Added support for `SharedArrayBuffer`.
 -->
@@ -2857,7 +2861,9 @@ exceeds the size of the `ArrayBuffer`, a `RangeError` exception is raised.
 added: v8.3.0
 napiVersion: 1
 changes:
-  - version: v24.13.1
+  - version:
+     - v25.5.0
+     - v24.13.1
     pr-url: https://github.com/nodejs/node/pull/60473
     description: Added support for `SharedArrayBuffer`.
 -->
@@ -3393,7 +3399,9 @@ Specification.
 added: v8.0.0
 napiVersion: 1
 changes:
-  - version: v24.9.0
+  - version:
+     - v24.9.0
+     - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/59071
     description: Added support for `SharedArrayBuffer`.
 -->
@@ -4378,7 +4386,9 @@ Specification.
 ### `node_api_is_sharedarraybuffer`
 
 <!-- YAML
-added: v24.9.0
+added:
+ - v24.9.0
+ - v22.21.0
 -->
 
 > Stability: 1 - Experimental
@@ -4398,7 +4408,9 @@ This API checks if the Object passed in is a `SharedArrayBuffer`.
 ### `node_api_create_sharedarraybuffer`
 
 <!-- YAML
-added: v24.9.0
+added:
+ - v24.9.0
+ - v22.21.0
 -->
 
 > Stability: 1 - Experimental
@@ -5097,7 +5109,9 @@ of the ECMA-262 specification.
 #### `node_api_set_prototype`
 
 <!-- YAML
-added: v24.13.1
+added:
+ - v25.4.0
+ - v24.13.1
 -->
 
 > Stability: 1 - Experimental
@@ -6100,6 +6114,10 @@ the runtime.
 <!-- YAML
 added: v8.6.0
 napiVersion: 1
+changes:
+  - version: v25.0.0
+    pr-url: https://github.com/nodejs/node/pull/59828
+    description: The `async_resource` object will now be held as a strong reference.
 -->
 
 ```c
@@ -6119,22 +6137,18 @@ napi_status napi_async_init(napi_env env,
 
 Returns `napi_ok` if the API succeeded.
 
-The `async_resource` object needs to be kept alive until
-[`napi_async_destroy`][] to keep `async_hooks` related API acts correctly. In
-order to retain ABI compatibility with previous versions, `napi_async_context`s
-are not maintaining the strong reference to the `async_resource` objects to
-avoid introducing causing memory leaks. However, if the `async_resource` is
-garbage collected by JavaScript engine before the `napi_async_context` was
-destroyed by `napi_async_destroy`, calling `napi_async_context` related APIs
-like [`napi_open_callback_scope`][] and [`napi_make_callback`][] can cause
-problems like loss of async context when using the `AsyncLocalStorage` API.
-
 In order to retain ABI compatibility with previous versions, passing `NULL`
 for `async_resource` does not result in an error. However, this is not
 recommended as this will result in undesirable behavior with  `async_hooks`
 [`init` hooks][] and `async_hooks.executionAsyncResource()` as the resource is
 now required by the underlying `async_hooks` implementation in order to provide
 the linkage between async callbacks.
+
+Previous versions of this API were not maintaining a strong reference to
+`async_resource` while the `napi_async_context` object existed and instead
+expected the caller to hold a strong reference. This has been changed, as a
+corresponding call to [`napi_async_destroy`][] for every call to
+`napi_async_init()` is a requirement in any case to avoid memory leaks.
 
 ### `napi_async_destroy`
 

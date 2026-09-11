@@ -5,7 +5,7 @@
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.15.0
+  - version: v25.7.0
     pr-url: https://github.com/nodejs/node/pull/61262
     description: SQLite is now a release candidate.
   - version:
@@ -30,7 +30,9 @@ import sqlite from 'node:sqlite';
 const sqlite = require('node:sqlite');
 ```
 
-This module is only available under the `node:` scheme.
+This module is only available under the `node:` scheme. SQL trace events can
+be observed via the [`diagnostics_channel`][] module. See
+[`'sqlite.db.query'`][] for details.
 
 The following example shows the basic usage of the `node:sqlite` module to open
 an in-memory database, write data to the database, and then read the data back.
@@ -121,7 +123,9 @@ read BigInts is not enabled, then an `ERR_OUT_OF_RANGE` error will be thrown.
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.0.0
+  - version:
+    - v24.0.0
+    - v22.16.0
     pr-url: https://github.com/nodejs/node/pull/57752
     description: Add `timeout` option.
   - version:
@@ -139,14 +143,19 @@ exposed by this class execute synchronously.
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.14.0
+  - version:
+     - v25.5.0
+     - v24.14.0
     pr-url: https://github.com/nodejs/node/pull/61266
     description: Enable `defensive` by default.
   - version:
+      - v25.1.0
       - v24.12.0
     pr-url: https://github.com/nodejs/node/pull/60217
     description: Add `defensive` option.
-  - version: v24.4.0
+  - version:
+      - v24.4.0
+      - v22.18.0
     pr-url: https://github.com/nodejs/node/pull/58697
     description: Add new SQLite database options.
 -->
@@ -213,7 +222,9 @@ Constructs a new `DatabaseSync` instance.
 ### `database.aggregate(name, options)`
 
 <!-- YAML
-added: v24.0.0
+added:
+ - v24.0.0
+ - v22.16.0
 -->
 
 Registers a new aggregate function with the SQLite database. This method is a wrapper around
@@ -298,7 +309,10 @@ added: v22.5.0
 -->
 
 Closes the database connection. An exception is thrown if the database is not
-open. This method is a wrapper around [`sqlite3_close_v2()`][].
+open. An [`ERR_INVALID_STATE`][] error is thrown if the method is called while
+a statement is executing, such as inside a user-defined function, an aggregate
+function, an authorizer callback, or a [`'sqlite.db.query'`][] subscriber. This
+method is a wrapper around [`sqlite3_close_v2()`][].
 
 ### `database.loadExtension(path[, entryPoint])`
 
@@ -357,6 +371,7 @@ loading extensions for security reasons.
 
 <!-- YAML
 added:
+  - v25.1.0
   - v24.12.0
 -->
 
@@ -369,7 +384,9 @@ See [`SQLITE_DBCONFIG_DEFENSIVE`][] in the SQLite documentation for details.
 ### `database.location([dbName])`
 
 <!-- YAML
-added: v24.0.0
+added:
+  - v24.0.0
+  - v22.16.0
 -->
 
 * `dbName` {string} Name of the database. This can be `'main'` (the default primary database) or any other
@@ -425,6 +442,11 @@ wrapper around [`sqlite3_create_function_v2()`][].
 
 <!-- YAML
 added: v24.10.0
+changes:
+  - version: v26.8.0
+    pr-url: https://github.com/nodejs/node/pull/65156
+    description: Accessing the invoking database connection from the authorizer
+                 callback now throws.
 -->
 
 * `callback` {Function|null} The authorizer function to set, or `null` to
@@ -449,6 +471,31 @@ The callback must return one of the following constants:
 * `SQLITE_OK` - Allow the operation.
 * `SQLITE_DENY` - Deny the operation (causes an error).
 * `SQLITE_IGNORE` - Ignore the operation (silently skip).
+
+SQLite requires that the authorizer callback not modify the database connection
+that invoked it, which includes preparing and stepping statements. Methods that
+would do so throw an error with code `ERR_INVALID_STATE` while the callback is
+on the stack, including `database.prepare()`, `database.exec()`, the execution
+methods of that connection's statements, iterators, and tag stores, and
+`database.setAuthorizer()` itself. Other connections remain usable.
+
+The callback can also be invoked from within `statement.run()`,
+`statement.get()`, and similar methods, because SQLite may re-prepare a
+statement during execution after a schema change.
+
+Separately, a statement that is currently being executed cannot be reentered.
+Calling `statement.close()` on it would free the virtual machine that is
+running, and re-running it through `statement.run()`, `statement.get()`,
+`statement.all()`, `statement.iterate()`, `iterator.next()`,
+`iterator.return()`, or the equivalent tag store methods would reset that
+virtual machine mid-execution. All of these throw an `ERR_INVALID_STATE` error
+instead. This applies to any callback SQLite invokes during execution, such as a
+user-defined function. Other statements on the connection remain usable.
+
+Operations that touch no SQLite state stay available from the callback:
+`sqlTagStore.clear()`, which only drops cached statements, and `next()` and
+`return()` on an already-drained iterator, which keep returning
+`{ done: true }`.
 
 ```cjs
 const { DatabaseSync, constants } = require('node:sqlite');
@@ -511,7 +558,9 @@ added:
 ### `database.isTransaction`
 
 <!-- YAML
-added: v24.0.0
+added:
+  - v24.0.0
+  - v22.16.0
 -->
 
 * Type: {boolean} Whether the database is currently within a transaction. This method
@@ -520,7 +569,7 @@ added: v24.0.0
 ### `database.limits`
 
 <!-- YAML
-added: v24.15.0
+added: v25.8.0
 -->
 
 * Type: {Object}
@@ -560,7 +609,7 @@ the constructor. An exception is thrown if the database is already open.
 ### `database.serialize([dbName])`
 
 <!-- YAML
-added: v24.16.0
+added: v26.1.0
 -->
 
 * `dbName` {string} Name of the database to serialize. This can be `'main'`
@@ -595,7 +644,7 @@ console.log(buffer.length); // Prints the byte length of the database
 ### `database.deserialize(buffer[, options])`
 
 <!-- YAML
-added: v24.16.0
+added: v26.1.0
 -->
 
 * `buffer` {Uint8Array} A binary representation of a database, such as the
@@ -607,8 +656,10 @@ added: v24.16.0
 Loads a serialized database into this connection, replacing the current
 database. The deserialized database is writable. Existing prepared statements
 are finalized before deserialization is attempted, even if the operation
-subsequently fails. This method is a wrapper around
-[`sqlite3_deserialize()`][].
+subsequently fails. An [`ERR_INVALID_STATE`][] error is thrown if the method is
+called while a database callback is on the stack, for example a user-defined
+function, an aggregate function, an authorizer, or a changeset filter or conflict
+handler. This method is a wrapper around [`sqlite3_deserialize()`][].
 
 ```mjs
 import { DatabaseSync } from 'node:sqlite';
@@ -647,7 +698,10 @@ console.log(query.get());
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
+    pr-url: https://github.com/nodejs/node/pull/62757
+    description: Add the `persistent` option.
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/65157
     description: Throw `ERR_INVALID_ARG_VALUE` if `sql` contains no statements.
 -->
@@ -663,10 +717,14 @@ changes:
     database options or `true`.
   * `allowUnknownNamedParameters` {boolean} If `true`, unknown named parameters
     are ignored. **Default:** inherited from database options or `false`.
+  * `persistent` {boolean} If `true`, hints to SQLite that this statement will
+    be retained for a long time and likely reused many times. SQLite currently
+    responds to this hint by avoiding lookaside memory. Corresponds to the
+    [`SQLITE_PREPARE_PERSISTENT`][] flag. **Default:** `false`.
 * Returns: {StatementSync} The prepared statement.
 
 Compiles a SQL statement into a [prepared statement][]. This method is a wrapper
-around [`sqlite3_prepare_v2()`][].
+around [`sqlite3_prepare_v3()`][].
 
 ### `database.createTagStore([maxSize])`
 
@@ -1025,10 +1083,10 @@ bound. Binding any other value throws an `ERR_INVALID_ARG_TYPE` error.
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
   - version:
@@ -1052,10 +1110,26 @@ returns an empty array. The prepared statement [parameters are bound][] using
 the values in `namedParameters` and `anonymousParameters`. See
 [Binding parameters][].
 
+### `statement.close()`
+
+<!-- YAML
+added: v26.8.0
+-->
+
+Finalizes the prepared statement. An exception is thrown if the statement is
+already finalized. An [`ERR_INVALID_STATE`][] error is thrown if this statement
+is currently executing, which happens when the method is called from a callback
+that the statement itself triggered, such as a user-defined function, an
+aggregate function, or a [`'sqlite.db.query'`][] subscriber. Idle statements
+on the same connection can be finalized from such a callback. This method is a
+wrapper around [`sqlite3_finalize()`][].
+
 ### `statement.columns()`
 
 <!-- YAML
-added: v23.11.0
+added:
+  - v23.11.0
+  - v22.16.0
 -->
 
 * Returns: {Array} An array of objects. Each object corresponds to a column
@@ -1097,10 +1171,10 @@ execution of this prepared statement. This property is a wrapper around
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
   - version:
@@ -1132,10 +1206,10 @@ added:
   - v23.4.0
   - v22.13.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
   - version:
@@ -1159,15 +1233,27 @@ returns an empty iterator. The prepared statement [parameters are bound][] using
 the values in `namedParameters` and `anonymousParameters`. See
 [Binding parameters][].
 
+### `statement.resetStats()`
+
+<!-- YAML
+added: v26.8.0
+-->
+
+Resets every counter reported by [`statement.stat()`][] back to zero, except
+`memused`, which reports current memory usage and cannot be reset. This
+method is a wrapper around [`sqlite3_stmt_status()`][] and is useful for
+measuring a specific workload without the counts accumulated by earlier
+executions of the same prepared statement.
+
 ### `statement.run([namedParameters][, ...anonymousParameters])`
 
 <!-- YAML
 added: v22.5.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
   - version:
@@ -1239,7 +1325,9 @@ exception is thrown. This method allows unknown named parameters to be ignored.
 ### `statement.setReturnArrays(enabled)`
 
 <!-- YAML
-added: v24.0.0
+added:
+  - v24.0.0
+  - v22.16.0
 -->
 
 * `enabled` {boolean} Enables or disables the return of query results as arrays.
@@ -1274,6 +1362,54 @@ added: v22.5.0
 The source SQL text of the prepared statement. This property is a
 wrapper around [`sqlite3_sql()`][].
 
+### `statement[Symbol.dispose]()`
+
+<!-- YAML
+added: v26.8.0
+-->
+
+Finalizes the prepared statement. If the prepared statement is already
+finalized, then this is a no-op. An [`ERR_INVALID_STATE`][] error is thrown if
+this statement is currently executing, under the same conditions as
+[`statement.close()`][].
+
+### `statement.stat(counter)`
+
+<!-- YAML
+added: v26.8.0
+-->
+
+* `counter` {string} The name of the counter to read. One of:
+
+  * `'fullscanStep'` The number of times SQLite has stepped forward in a table
+    as part of a full table scan.
+  * `'sort'` The number of sort operations that have occurred.
+  * `'autoindex'` The number of rows inserted into transient indices that were
+    created automatically to help joins run faster.
+  * `'vmStep'` The number of virtual machine operations executed by the
+    prepared statement.
+  * `'reprepare'` The number of times the statement has been automatically
+    reprepared due to schema changes or changes to bound parameters.
+  * `'run'` The number of execution cycles started by the prepared statement.
+  * `'filterMiss'` The number of times the Bloom filter returned a result that
+    required the join step to be processed as normal.
+  * `'filterHit'` The number of times a join step was bypassed because a Bloom
+    filter returned not-found.
+  * `'memused'` The approximate number of bytes of heap memory used to store
+    the prepared statement.
+
+* Returns: {number} The current value of the requested counter.
+
+Returns one of the runtime counters that SQLite tracks for this prepared
+statement. This method is a wrapper around [`sqlite3_stmt_status()`][] and does
+not reset the counter. Asserting that a statement does not perform a full table
+scan (`statement.stat('fullscanStep') === 0`) is a useful check to guard
+against degenerate performance.
+
+The `'filterMiss'` and `'filterHit'` counters require SQLite 3.38.0 or later.
+Builds linked against an older SQLite with `--shared-sqlite` do not expose them,
+and passing either name throws `ERR_INVALID_ARG_VALUE`.
+
 ## Class: `SQLTagStore`
 
 <!-- YAML
@@ -1298,10 +1434,10 @@ class execute synchronously.
 <!-- YAML
 added: v24.9.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
 -->
@@ -1323,10 +1459,10 @@ called directly.
 <!-- YAML
 added: v24.9.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
 -->
@@ -1348,10 +1484,10 @@ called directly.
 <!-- YAML
 added: v24.9.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
 -->
@@ -1372,10 +1508,10 @@ called directly.
 <!-- YAML
 added: v24.9.0
 changes:
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62001
     description: Add support for boolean values in bound parameters.
-  - version: v24.21.0
+  - version: v26.8.0
     pr-url: https://github.com/nodejs/node/pull/62061
     description: Add support for `ArrayBuffer` and `SharedArrayBuffer` objects in bound parameters.
 -->
@@ -1396,7 +1532,9 @@ called directly.
 <!-- YAML
 added: v24.9.0
 changes:
-  - version: v24.13.1
+  - version:
+     - v25.5.0
+     - v24.13.1
     pr-url: https://github.com/nodejs/node/pull/60246
     description: Changed from a method to a getter.
 -->
@@ -1436,7 +1574,9 @@ Resets the LRU cache, clearing all stored prepared statements.
 ## `sqlite.backup(sourceDb, path[, options])`
 
 <!-- YAML
-added: v23.8.0
+added:
+  - v23.8.0
+  - v22.16.0
 changes:
   - version: v23.10.0
     pr-url: https://github.com/nodejs/node/pull/56991
@@ -1752,17 +1892,21 @@ callback function to indicate what type of operation is being authorized.
 [Run-Time Limits]: https://www.sqlite.org/c3ref/limit.html
 [SQL injection]: https://en.wikipedia.org/wiki/SQL_injection
 [Type conversion between JavaScript and SQLite]: #type-conversion-between-javascript-and-sqlite
+[`'sqlite.db.query'`]: diagnostics_channel.md#event-sqlitedbquery
 [`ATTACH DATABASE`]: https://www.sqlite.org/lang_attach.html
+[`ERR_INVALID_STATE`]: errors.md#err_invalid_state
 [`PRAGMA foreign_keys`]: https://www.sqlite.org/pragma.html#pragma_foreign_keys
 [`SQLITE_DBCONFIG_DEFENSIVE`]: https://www.sqlite.org/c3ref/c_dbconfig_defensive.html#sqlitedbconfigdefensive
 [`SQLITE_DETERMINISTIC`]: https://www.sqlite.org/c3ref/c_deterministic.html
 [`SQLITE_DIRECTONLY`]: https://www.sqlite.org/c3ref/c_deterministic.html
 [`SQLITE_MAX_FUNCTION_ARG`]: https://www.sqlite.org/limits.html#max_function_arg
+[`SQLITE_PREPARE_PERSISTENT`]: https://sqlite.org/c3ref/c_prepare_dont_log.html#sqlitepreparepersistent
 [`SQLTagStore`]: #class-sqltagstore
 [`database.applyChangeset()`]: #databaseapplychangesetchangeset-options
 [`database.createTagStore()`]: #databasecreatetagstoremaxsize
 [`database.serialize()`]: #databaseserializedbname
 [`database.setAuthorizer()`]: #databasesetauthorizercallback
+[`diagnostics_channel`]: diagnostics_channel.md
 [`sqlite3_backup_finish()`]: https://www.sqlite.org/c3ref/backup_finish.html#sqlite3backupfinish
 [`sqlite3_backup_init()`]: https://www.sqlite.org/c3ref/backup_finish.html#sqlite3backupinit
 [`sqlite3_backup_step()`]: https://www.sqlite.org/c3ref/backup_finish.html#sqlite3backupstep
@@ -1779,21 +1923,25 @@ callback function to indicate what type of operation is being authorized.
 [`sqlite3_deserialize()`]: https://sqlite.org/c3ref/deserialize.html
 [`sqlite3_exec()`]: https://www.sqlite.org/c3ref/exec.html
 [`sqlite3_expanded_sql()`]: https://www.sqlite.org/c3ref/expanded_sql.html
+[`sqlite3_finalize()`]: https://www.sqlite.org/c3ref/finalize.html
 [`sqlite3_get_autocommit()`]: https://sqlite.org/c3ref/get_autocommit.html
 [`sqlite3_last_insert_rowid()`]: https://www.sqlite.org/c3ref/last_insert_rowid.html
 [`sqlite3_load_extension()`]: https://www.sqlite.org/c3ref/load_extension.html
-[`sqlite3_prepare_v2()`]: https://www.sqlite.org/c3ref/prepare.html
+[`sqlite3_prepare_v3()`]: https://www.sqlite.org/c3ref/prepare.html
 [`sqlite3_serialize()`]: https://sqlite.org/c3ref/serialize.html
 [`sqlite3_set_authorizer()`]: https://sqlite.org/c3ref/set_authorizer.html
 [`sqlite3_sql()`]: https://www.sqlite.org/c3ref/expanded_sql.html
+[`sqlite3_stmt_status()`]: https://www.sqlite.org/c3ref/stmt_status.html
 [`sqlite3changeset_apply()`]: https://www.sqlite.org/session/sqlite3changeset_apply.html
 [`sqlite3session_attach()`]: https://www.sqlite.org/session/sqlite3session_attach.html
 [`sqlite3session_changeset()`]: https://www.sqlite.org/session/sqlite3session_changeset.html
 [`sqlite3session_create()`]: https://www.sqlite.org/session/sqlite3session_create.html
 [`sqlite3session_delete()`]: https://www.sqlite.org/session/sqlite3session_delete.html
 [`sqlite3session_patchset()`]: https://www.sqlite.org/session/sqlite3session_patchset.html
+[`statement.close()`]: #statementclose
 [`statement.setAllowBareNamedParameters()`]: #statementsetallowbarenamedparametersenabled
 [`statement.setAllowUnknownNamedParameters()`]: #statementsetallowunknownnamedparametersenabled
+[`statement.stat()`]: #statementstatcounter
 [busy timeout]: https://sqlite.org/c3ref/busy_timeout.html
 [connection]: https://www.sqlite.org/c3ref/sqlite3.html
 [data types]: https://www.sqlite.org/datatype3.html

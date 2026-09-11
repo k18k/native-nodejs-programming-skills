@@ -109,7 +109,7 @@ For more details refer to the relevant documentation:
 ### `ReadableStreamTee(stream[, cloneForBranch2])`
 
 <!-- YAML
-added: v24.19.0
+added: v26.5.0
 -->
 
 > Stability: 1 - Experimental
@@ -1513,7 +1513,9 @@ changes:
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.7.0
+  - version:
+    - v24.7.0
+    - v22.20.0
     pr-url: https://github.com/nodejs/node/pull/59464
     description: format now accepts `brotli` value.
   - version:
@@ -1556,7 +1558,9 @@ changes:
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.7.0
+  - version:
+    - v24.7.0
+    - v22.20.0
     pr-url: https://github.com/nodejs/node/pull/59464
     description: format now accepts `brotli` value.
   - version:
@@ -1726,7 +1730,9 @@ buffer(readable).then((data) => {
 #### `streamConsumers.bytes(stream)`
 
 <!-- YAML
-added: v24.14.0
+added:
+ - v25.6.0
+ - v24.14.0
 -->
 
 * `stream` {ReadableStream|stream.Readable|AsyncIterator}

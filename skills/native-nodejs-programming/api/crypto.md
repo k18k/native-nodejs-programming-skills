@@ -862,8 +862,8 @@ added: v1.0.0
 -->
 
 * Returns: {Buffer} When using an authenticated encryption mode (`GCM`, `CCM`,
-  `OCB`, and `chacha20-poly1305` are currently supported), the
-  `cipher.getAuthTag()` method returns a
+  `OCB`, `SIV`, `GCM-SIV`, and `chacha20-poly1305` are currently
+  supported), the `cipher.getAuthTag()` method returns a
   [`Buffer`][] containing the _authentication tag_ that has been computed from
   the given data.
 
@@ -885,14 +885,14 @@ added: v1.0.0
   * `encoding` {string} The string encoding to use when `buffer` is a string.
 * Returns: {Cipheriv} The same `Cipheriv` instance for method chaining.
 
-When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, and
-`chacha20-poly1305` are
-currently supported), the `cipher.setAAD()` method sets the value used for the
-_additional authenticated data_ (AAD) input parameter.
+When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, `SIV`,
+`GCM-SIV`, and `chacha20-poly1305` are currently supported), the
+`cipher.setAAD()` method sets the value used for the _additional authenticated
+data_ (AAD) input parameter.
 
-The `plaintextLength` option is optional for `GCM` and `OCB`. When using `CCM`,
-the `plaintextLength` option must be specified and its value must match the
-length of the plaintext in bytes. See [CCM mode][].
+The `plaintextLength` option is optional for `GCM`, `OCB`, `SIV`, and
+`GCM-SIV`. When using `CCM`, the `plaintextLength` option must be specified and
+its value must match the length of the plaintext in bytes. See [CCM mode][].
 
 The `cipher.setAAD()` method must be called before [`cipher.update()`][].
 
@@ -1190,14 +1190,14 @@ changes:
   * `encoding` {string} String encoding to use when `buffer` is a string.
 * Returns: {Decipheriv} The same `Decipheriv` instance for method chaining.
 
-When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, and
-`chacha20-poly1305` are
-currently supported), the `decipher.setAAD()` method sets the value used for the
-_additional authenticated data_ (AAD) input parameter.
+When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, `SIV`,
+`GCM-SIV`, and `chacha20-poly1305` are currently supported), the
+`decipher.setAAD()` method sets the value used for the _additional
+authenticated data_ (AAD) input parameter.
 
-The `options` argument is optional for `GCM`. When using `CCM`, the
-`plaintextLength` option must be specified and its value must match the length
-of the ciphertext in bytes. See [CCM mode][].
+The `options` argument is optional for `GCM`, `OCB`, `SIV`, and `GCM-SIV`.
+When using `CCM`, the `plaintextLength` option must be specified and its value
+must match the length of the ciphertext in bytes. See [CCM mode][].
 
 The `decipher.setAAD()` method must be called before [`decipher.update()`][].
 
@@ -1209,6 +1209,11 @@ When passing a string as the `buffer`, please consider
 <!-- YAML
 added: v1.0.0
 changes:
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/61084
+    description: Using GCM tag lengths other than 128 bits without specifying
+                 the `authTagLength` option when creating `decipher` is not
+                 allowed anymore.
   - version:
     - v22.0.0
     - v20.13.0
@@ -1232,28 +1237,19 @@ changes:
 * `encoding` {string} String encoding to use when `buffer` is a string.
 * Returns: {Decipheriv} The same `Decipheriv` instance for method chaining.
 
-When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, and
-`chacha20-poly1305` are
-currently supported), the `decipher.setAuthTag()` method is used to pass in the
-received _authentication tag_. If no tag is provided, or if the cipher text
-has been tampered with, [`decipher.final()`][] will throw, indicating that the
-cipher text should be discarded due to failed authentication. If the tag length
-is invalid according to [NIST SP 800-38D][] or does not match the value of the
+When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, `SIV`,
+`GCM-SIV`, and `chacha20-poly1305` are currently supported), the
+`decipher.setAuthTag()` method is used to pass in the received
+_authentication tag_. If no tag is provided, or if the cipher text has been
+tampered with, [`decipher.final()`][] will throw, indicating that the cipher
+text should be discarded due to failed authentication. If the tag length is
+invalid according to [NIST SP 800-38D][] or does not match the value of the
 `authTagLength` option, `decipher.setAuthTag()` will throw an error.
 
 The `decipher.setAuthTag()` method must be called before [`decipher.update()`][]
-for `CCM` mode or before [`decipher.final()`][] for `GCM` and `OCB` modes and
-`chacha20-poly1305`.
+for `CCM`, `SIV`, and `GCM-SIV` modes or before [`decipher.final()`][] for
+`GCM` and `OCB` modes and `chacha20-poly1305`.
 `decipher.setAuthTag()` can only be called once.
-
-Because the `node:crypto` module was originally designed to closely mirror
-OpenSSL's behavior, this function permits short GCM authentication tags unless
-an explicit authentication tag length was passed to
-[`crypto.createDecipheriv()`][] when the `decipher` object was created. This
-behavior is deprecated and subject to change (see [DEP0182][]). <strong class="critical">
-In the meantime, applications should either set the `authTagLength` option when
-calling `createDecipheriv()` or check the actual
-authentication tag length before passing it to `setAuthTag()`.</strong>
 
 When passing a string as the authentication tag, please consider
 [caveats when using strings as inputs to cryptographic APIs][].
@@ -2279,12 +2275,20 @@ be listed in the `transferList` argument.
 
 <!-- YAML
 added: v15.0.0
+changes:
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62453
+    description: Passing a non-extractable CryptoKey as `key` is deprecated.
 -->
 
 * `key` {CryptoKey}
 * Returns: {KeyObject}
 
-Example: Converting a `CryptoKey` instance to a `KeyObject`:
+Returns the underlying {KeyObject} of a {CryptoKey}. The returned {KeyObject}
+does not retain any of the restrictions imposed by the Web Crypto API on the
+original {CryptoKey}, such as the allowed key usages, the algorithm or hash
+algorithm bindings, and the extractability flag. In particular, the underlying
+key material of the returned {KeyObject} can always be exported.
 
 ```mjs
 const { KeyObject } = await import('node:crypto');
@@ -2413,14 +2417,19 @@ type, value, and parameters. This method is not
 <!-- YAML
 added: v11.6.0
 changes:
-  - version: v24.18.0
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62706
     description: Added JWK format support for ML-KEM and SLH-DSA
                  key types.
-  - version: v24.15.0
+  - version: v26.0.0
     pr-url: https://github.com/nodejs/node/pull/62240
     description: Added support for `'raw-public'`, `'raw-private'`,
                  and `'raw-seed'` formats.
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62178
+    description: ML-KEM and ML-DSA private key `'pkcs8'` export now
+                 uses seed-only format by default when a seed is
+                 available.
   - version: v15.9.0
     pr-url: https://github.com/nodejs/node/pull/37081
     description: Added support for `'jwk'` format.
@@ -3545,6 +3554,12 @@ operations. The specific constants currently defined are described in
 <!-- YAML
 added: v0.1.94
 changes:
+  - version: v26.8.0
+    pr-url: https://github.com/nodejs/node/pull/63411
+    description: Ciphers in SIV and GCM-SIV modes are now supported.
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62453
+    description: Passing a CryptoKey as `key` is deprecated.
   - version:
     - v17.9.0
     - v16.17.0
@@ -3592,7 +3607,9 @@ cipher in CCM or OCB mode (e.g. `'aes-128-ccm'`) is used. In that case, the
 authentication tag in bytes, see [CCM mode][]. In GCM mode, the `authTagLength`
 option is not required but can be used to set the length of the authentication
 tag that will be returned by `getAuthTag()` and defaults to 16 bytes.
-For `chacha20-poly1305`, the `authTagLength` option defaults to 16 bytes.
+For `SIV`, `GCM-SIV`, and `chacha20-poly1305`, the `authTagLength` option
+defaults to 16 bytes. `SIV` and `GCM-SIV` only support 16-byte authentication
+tags.
 
 The `algorithm` is dependent on OpenSSL, examples are `'aes192'`, etc. On
 recent OpenSSL releases, `openssl list -cipher-algorithms` will
@@ -3619,6 +3636,12 @@ given IV will be.
 <!-- YAML
 added: v0.1.94
 changes:
+  - version: v26.8.0
+    pr-url: https://github.com/nodejs/node/pull/63411
+    description: Ciphers in SIV and GCM-SIV modes are now supported.
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62453
+    description: Passing a CryptoKey as `key` is deprecated.
   - version:
     - v17.9.0
     - v16.17.0
@@ -3660,13 +3683,10 @@ The `options` argument controls stream behavior and is optional except when a
 cipher in CCM or OCB mode (e.g. `'aes-128-ccm'`) is used. In that case, the
 `authTagLength` option is required and specifies the length of the
 authentication tag in bytes, see [CCM mode][].
-For `chacha20-poly1305`, the `authTagLength` option defaults to 16
-bytes and must be set to a different value if a different length is used.
-For AES-GCM, the `authTagLength` option has no default value when decrypting,
-and `setAuthTag()` will accept arbitrarily short authentication tags. This
-behavior is deprecated and subject to change (see [DEP0182][]). <strong class="critical">
-In the meantime, applications should either set the `authTagLength` option or
-check the actual authentication tag length before passing it to `setAuthTag()`.</strong>
+For AES-GCM and `chacha20-poly1305`, the `authTagLength` option defaults to 16
+bytes and must be set to a different value if a different length is used. For
+`SIV` and `GCM-SIV`, the `authTagLength` option defaults to 16 bytes and only
+16-byte authentication tags are supported.
 
 The `algorithm` is dependent on OpenSSL, examples are `'aes192'`, etc. On
 recent OpenSSL releases, `openssl list -cipher-algorithms` will
@@ -3849,6 +3869,9 @@ input.on('readable', () => {
 <!-- YAML
 added: v0.1.94
 changes:
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62453
+    description: Passing a CryptoKey as `key` is deprecated.
   - version: v15.0.0
     pr-url: https://github.com/nodejs/node/pull/35093
     description: The key can also be an ArrayBuffer or CryptoKey. The
@@ -3939,15 +3962,21 @@ input.on('readable', () => {
 <!-- YAML
 added: v11.6.0
 changes:
-  - version: v24.21.0
+  - version: v26.7.0
     pr-url: https://github.com/nodejs/node/pull/63949
     description: The key can also be a URL referencing an object for an
                  OpenSSL STORE loader. The `properties` option was added.
-  - version: v24.18.0
+  - version: v26.7.0
+    pr-url: https://github.com/nodejs/node/pull/63188
+    description: Passing a CryptoKey as `key` is no longer supported.
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62706
     description: Added JWK format support for ML-KEM and SLH-DSA
                  key types.
-  - version: v24.15.0
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62453
+    description: Passing a CryptoKey as `key` is deprecated.
+  - version: v26.0.0
     pr-url: https://github.com/nodejs/node/pull/62240
     description: Added support for `'raw-private'` and `'raw-seed'`
                  formats.
@@ -4016,7 +4045,7 @@ the [Permission Model][] is enabled, [`--allow-openssl-store`][] is required.
 
 Configured OpenSSL STORE loaders have broad authority and may access files,
 devices, tokens, or the network. Access performed by a loader is not constrained
-by the `fs.read` or `fs.write` permission scopes.
+by the `fs.read`, `fs.write`, or `net` permission scopes.
 
 When a {URL} is used, `format`, `type`, `asymmetricKeyType`, and `namedCurve`
 are ignored even when those options would otherwise depend on each other, such
@@ -4040,11 +4069,14 @@ is distinct from provider-specific URI parameters.
 <!-- YAML
 added: v11.6.0
 changes:
-  - version: v24.18.0
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62706
     description: Added JWK format support for ML-KEM and SLH-DSA
                  key types.
-  - version: v24.15.0
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/62453
+    description: Passing a CryptoKey as `key` is deprecated.
+  - version: v26.0.0
     pr-url: https://github.com/nodejs/node/pull/62240
     description: Added support for `'raw-public'` format.
   - version: v24.6.0
@@ -4208,7 +4240,7 @@ added:
  - v13.9.0
  - v12.17.0
 changes:
-  - version: v24.18.0
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62527
     description: Accept key data in addition to KeyObject instances.
   - version: v23.11.0
@@ -4743,15 +4775,17 @@ added: v15.0.0
   * `ivLength` {number} A test IV length.
 * Returns: {Object}
   * `name` {string} The name of the cipher
-  * `nid` {number} The nid of the cipher
-  * `blockSize` {number} The block size of the cipher in bytes. This property
-    is omitted when `mode` is `'stream'`.
-  * `ivLength` {number} The expected or default initialization vector length in
-    bytes. This property is omitted if the cipher does not use an initialization
+  * `nid` {number|undefined} The nid of the cipher. This property is `undefined` if the
+    cipher has no OpenSSL nid.
+  * `blockSize` {number|undefined} The block size of the cipher in bytes. This property
+    is `undefined` when `mode` is `'stream'`.
+  * `ivLength` {number|undefined} The expected or default initialization vector length in
+    bytes. This property is `undefined` if the cipher does not use an initialization
     vector.
   * `keyLength` {number} The expected or default key length in bytes.
   * `mode` {string} The cipher mode. One of `'cbc'`, `'ccm'`, `'cfb'`, `'ctr'`,
-    `'ecb'`, `'gcm'`, `'ocb'`, `'ofb'`, `'stream'`, `'wrap'`, `'xts'`.
+    `'ecb'`, `'gcm'`, `'gcm-siv'`, `'ocb'`, `'ofb'`, `'siv'`, `'stream'`,
+    `'wrap'`, `'xts'`.
 
 Returns information about a given cipher.
 
@@ -4926,7 +4960,9 @@ added:
  - v21.7.0
  - v20.12.0
 changes:
-  - version: v24.13.1
+  - version:
+     - v25.5.0
+     - v24.13.1
     pr-url: https://github.com/nodejs/node/pull/60994
     description: This API is no longer experimental.
   - version: v24.4.0
@@ -5276,6 +5312,9 @@ An array of supported digest functions can be retrieved using
 <!-- YAML
 added: v0.11.14
 changes:
+  - version: v26.8.0
+    pr-url: https://github.com/nodejs/node/pull/65073
+    description: The `mgf1Hash` option was added.
   - version:
       - v21.6.2
       - v20.11.1
@@ -5303,8 +5342,11 @@ changes:
 <!--lint disable maximum-line-length remark-lint-->
 
 * `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
-  * `oaepHash` {string} The hash function to use for OAEP padding and MGF1.
-    **Default:** `'sha1'`
+  * `oaepHash` {string} The hash function to use for OAEP padding and, unless
+    `mgf1Hash` is set, MGF1. **Default:** `'sha1'`
+  * `mgf1Hash` {string} The hash function to use for the MGF1 mask generation
+    function of OAEP padding. If not specified, the value of `oaepHash` is used.
+    This allows the OAEP digest and the MGF1 digest to differ.
   * `oaepLabel` {string|ArrayBuffer|Buffer|TypedArray|DataView} The label to
     use for OAEP padding. If not specified, no label is used.
   * `padding` {crypto.constants} An optional padding value defined in
@@ -5349,8 +5391,8 @@ changes:
 
 * `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
   * `key` {string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
-    The private key material, a {KeyObject}, {CryptoKey}, or a {URL}
-    referencing an object for an OpenSSL STORE loader.
+    The private key material, a {KeyObject}, or a {URL} referencing an object
+    for an OpenSSL STORE loader.
   * `passphrase` {string|ArrayBuffer|Buffer|TypedArray|DataView} An optional
     passphrase for the private key.
   * `padding` {crypto.constants} An optional padding value defined in
@@ -5418,6 +5460,9 @@ be passed instead of a public key.
 <!-- YAML
 added: v0.11.14
 changes:
+  - version: v26.8.0
+    pr-url: https://github.com/nodejs/node/pull/65073
+    description: The `mgf1Hash` option was added.
   - version: v15.0.0
     pr-url: https://github.com/nodejs/node/pull/35093
     description: Added string, ArrayBuffer, and CryptoKey as allowable key
@@ -5440,8 +5485,11 @@ changes:
 * `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
   * `key` {string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
     A PEM encoded public or private key, {KeyObject}, or {CryptoKey}.
-  * `oaepHash` {string} The hash function to use for OAEP padding and MGF1.
-    **Default:** `'sha1'`
+  * `oaepHash` {string} The hash function to use for OAEP padding and, unless
+    `mgf1Hash` is set, MGF1. **Default:** `'sha1'`
+  * `mgf1Hash` {string} The hash function to use for the MGF1 mask generation
+    function of OAEP padding. If not specified, the value of `oaepHash` is used.
+    This allows the OAEP digest and the MGF1 digest to differ.
   * `oaepLabel` {string|ArrayBuffer|Buffer|TypedArray|DataView} The label to
     use for OAEP padding. If not specified, no label is used.
   * `passphrase` {string|ArrayBuffer|Buffer|TypedArray|DataView} An optional
@@ -5913,7 +5961,7 @@ cryptographic pseudorandom number generator.
 ### `crypto.randomUUIDv7([options])`
 
 <!-- YAML
-added: v24.16.0
+added: v26.1.0
 -->
 
 * `options` {Object}
@@ -6125,11 +6173,14 @@ changes:
     description: Custom engine support in OpenSSL 3 is deprecated.
 -->
 
+> Stability: 0 - Deprecated
+
 * `engine` {string}
 * `flags` {crypto.constants} **Default:** `crypto.constants.ENGINE_METHOD_ALL`
 
 Load and set the `engine` for some or all OpenSSL functions (selected by flags).
-Support for custom engines in OpenSSL is deprecated from OpenSSL 3.
+Use of this API is deprecated because custom engine support has been deprecated
+since OpenSSL 3.
 
 `engine` could be either an id or a path to the engine's shared library.
 
@@ -6188,7 +6239,7 @@ enabling FIPS mode requires a FIPS-capable OpenSSL build.
 <!-- YAML
 added: v12.0.0
 changes:
-  - version: v24.16.0
+  - version: v26.0.0
     pr-url: https://github.com/nodejs/node/pull/62474
     description: Add support for Ed25519 context parameter.
   - version: v24.8.0
@@ -6319,7 +6370,7 @@ not introduce timing vulnerabilities.
 <!-- YAML
 added: v12.0.0
 changes:
-  - version: v24.16.0
+  - version: v26.0.0
     pr-url: https://github.com/nodejs/node/pull/62474
     description: Add support for Ed25519 context parameter.
   - version: v24.8.0
@@ -6613,6 +6664,37 @@ try {
 
 console.log(receivedPlaintext);
 ```
+
+### SIV and GCM-SIV modes
+
+`SIV`[^openssl30] and `GCM-SIV`[^openssl32] are supported [AEAD algorithms][]
+when supported by OpenSSL. Applications which use these modes must adhere to
+certain restrictions when using the cipher API:
+
+* The authentication tag length is fixed at 16 bytes.
+* `AES-SIV` keys are twice the named AES key size: `aes-128-siv` requires a
+  32-byte key, `aes-192-siv` requires a 48-byte key, and `aes-256-siv`
+  requires a 64-byte key.
+* `AES-SIV` ciphers do not use an initialization vector. Pass `null` or a
+  zero-length `iv` to [`crypto.createCipheriv()`][] or
+  [`crypto.createDecipheriv()`][].
+* `AES-SIV` and `AES-GCM-SIV` support zero-length plaintext only with OpenSSL
+  3.5 or later.
+* `AES-SIV` does not have a separate nonce or IV parameter. RFC 5297 defines
+  `AES-SIV` over an ordered list of associated-data inputs. Each `setAAD()`
+  call supplies one input in that list. If a protocol uses a nonce with
+  `AES-SIV`, call `setAAD(nonce)` after the other associated-data inputs and
+  before `update()`. At most 126 associated-data inputs may be supplied.
+* `AES-GCM-SIV` ciphers require a 12-byte initialization vector.
+* When decrypting, the authentication tag must be set via `setAuthTag()` before
+  calling `update()`.
+* Using stream methods such as `write(data)`, `end(data)` or `pipe()` might
+  fail as these modes cannot handle more than one chunk of data per instance.
+* As these modes process the whole message at once, `update()` must be called
+  exactly once.
+* Even though calling `update()` is sufficient to encrypt/decrypt the message,
+  applications _must_ call `final()` to compute or verify the authentication
+  tag.
 
 ### FIPS mode
 
@@ -7012,7 +7094,6 @@ See the [list of SSL OP Flags][] for details.
 [CVE-2021-44532]: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44532
 [Caveats]: #support-for-weak-or-compromised-algorithms
 [Crypto constants]: #crypto-constants
-[DEP0182]: deprecations.md#dep0182-short-gcm-authentication-tags-without-explicit-authtaglength
 [FIPS mode]: #fips-mode
 [FIPS module configuration file]: https://docs.openssl.org/3.0/man5/fips_config/
 [HTML 5.2]: https://www.w3.org/TR/html52/changes.html#features-removed
