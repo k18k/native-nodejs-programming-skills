@@ -884,7 +884,9 @@ added:
   - v18.0.0
   - v16.17.0
 changes:
- - version: v24.0.0
+ - version:
+    - v24.0.0
+    - v22.17.0
    pr-url: https://github.com/nodejs/node/pull/57513
    description: Marking the API stable.
 -->
@@ -1652,7 +1654,9 @@ the stream has not been destroyed or emitted `'error'` or `'end'`.
 <!-- YAML
 added: v16.8.0
 changes:
- - version: v24.0.0
+ - version:
+    - v24.0.0
+    - v22.17.0
    pr-url: https://github.com/nodejs/node/pull/57513
    description: Marking the API stable.
 -->
@@ -1668,7 +1672,9 @@ added:
   - v16.7.0
   - v14.18.0
 changes:
- - version: v24.0.0
+ - version:
+    - v24.0.0
+    - v22.17.0
    pr-url: https://github.com/nodejs/node/pull/57513
    description: Marking the API stable.
 -->
@@ -2001,7 +2007,7 @@ has less than 64 KiB of data because no `highWaterMark` option is provided to
 ##### `readable[Symbol.for('Stream.toAsyncStreamable')]()`
 
 <!-- YAML
-added: v24.20.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental
@@ -2075,7 +2081,9 @@ added:
   - v19.1.0
   - v18.13.0
 changes:
- - version: v24.0.0
+ - version:
+    - v24.0.0
+    - v22.17.0
    pr-url: https://github.com/nodejs/node/pull/57513
    description: Marking the API stable.
 -->
@@ -2117,7 +2125,9 @@ See [`stream.compose(...streams)`][] for more information.
 <!-- YAML
 added: v16.3.0
 changes:
- - version: v24.0.0
+ - version:
+    - v24.0.0
+    - v22.17.0
    pr-url: https://github.com/nodejs/node/pull/57513
    description: Marking the API stable.
 -->
@@ -3009,7 +3019,7 @@ const server = http.createServer((req, res) => {
 <!-- YAML
 added: v16.9.0
 changes:
-  - version: v24.19.0
+  - version: v26.2.0
     pr-url: https://github.com/nodejs/node/pull/62562
     description: Marking the API stable.
   - version:
@@ -3222,7 +3232,9 @@ Readable.from([
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
 -->
@@ -3240,7 +3252,9 @@ changes:
 <!-- YAML
 added: v16.8.0
 changes:
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
 -->
@@ -3255,10 +3269,14 @@ Returns whether the stream has been read from or cancelled.
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.14.0
+  - version:
+     - v25.4.0
+     - v24.14.0
     pr-url: https://github.com/nodejs/node/pull/58664
     description: Add 'type' option to specify 'bytes'.
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
   - version:
@@ -3287,7 +3305,9 @@ changes:
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
 -->
@@ -3305,7 +3325,9 @@ changes:
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
 -->
@@ -3369,7 +3391,9 @@ Duplex.from([
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
 -->
@@ -3452,14 +3476,18 @@ duplex.once('readable', () => console.log('readable', duplex.read()));
 <!-- YAML
 added: v17.0.0
 changes:
-  - version: v24.15.0
+  - version: v25.7.0
     pr-url: https://github.com/nodejs/node/pull/61632
     description: Added the 'readableType' option to specify the ReadableStream
                  type. The 'type' option is deprecated.
-  - version: v24.14.0
+  - version:
+     - v25.4.0
+     - v24.14.0
     pr-url: https://github.com/nodejs/node/pull/58664
     description: Added the 'type' option to specify the ReadableStream type.
-  - version: v24.0.0
+  - version:
+      - v24.0.0
+      - v22.17.0
     pr-url: https://github.com/nodejs/node/pull/57513
     description: Marking the API stable.
 -->
@@ -3537,6 +3565,10 @@ changes:
 
 Attaches an AbortSignal to a readable or writable stream. This lets code
 control stream destruction using an `AbortController`.
+
+> Stability: 0 - Deprecated. Using [`stream.addAbortSignal()`][] to destroy
+> long-lived stream resources is documentation-only deprecated. See
+> [DEP0209](deprecations.md#dep0209-using-abortsignal-to-dispose-of-resources).
 
 Calling `abort` on the `AbortController` corresponding to the passed
 `AbortSignal` will behave the same way as calling `.destroy(new AbortError())`

@@ -60,9 +60,10 @@ The Permission Model has two operational modes:
   with enforce mode.
 
 When starting Node.js with `--permission`,
-the ability to access the file system through the `fs` module, spawn processes,
-use `node:worker_threads`, use native addons, use WASI, and enable the runtime inspector
-will be restricted.
+the ability to access the file system through the `fs` module, access the network,
+spawn processes, use `node:worker_threads`, use native addons, use WASI, use
+FFI, and enable the runtime inspector will be restricted (the listener for
+SIGUSR1 won't be created).
 
 ```console
 $ node --permission index.js
@@ -78,15 +79,18 @@ Error: Access to this API has been restricted
 Allowing access to spawning a process and creating worker threads can be done
 using the [`--allow-child-process`][] and [`--allow-worker`][] respectively.
 
-To allow native addons when using permission model, use the [`--allow-addons`][]
-flag. For WASI, use the [`--allow-wasi`][] flag.
+To allow network access, use [`--allow-net`][] and for allowing native addons
+when using permission model, use the [`--allow-addons`][]
+flag. For WASI, use the [`--allow-wasi`][] flag. For FFI, use the
+[`--allow-ffi`][] flag. The [`node:ffi`](ffi.md) module also requires the
+`--experimental-ffi` flag and is only available in builds with FFI support.
 
 To allow use of OpenSSL STORE loaders, for example to load a private key
 from a {URL} passed to [`crypto.createPrivateKey()`][], use the
 [`--allow-openssl-store`][] flag.
 This flag grants broad authority to configured OpenSSL STORE loaders, which may
 access files, devices, tokens, or the network. Access performed by a loader is
-not constrained by the `fs.read` or `fs.write` permission scopes.
+not constrained by the `fs.read`, `fs.write`, or `net` permission scopes.
 
 #### Runtime API
 
@@ -114,8 +118,9 @@ When called without a reference, the entire scope is dropped. When called
 with a reference, only the permission for that specific resource is revoked.
 Dropping a permission only affects future access checks. It does not close or
 revoke access to resources that are already open, such as file descriptors,
-child processes, or worker threads. Applications are responsible for closing
-or terminating those resources when they are no longer needed.
+network sockets, child processes, or worker threads. Applications are
+responsible for closing or terminating those resources when they are no longer
+needed.
 
 You can only drop the exact resource that was explicitly granted. The
 reference passed to `drop()` must match the original grant. If a permission
@@ -151,25 +156,28 @@ mode. Execution continues normally.
 
 Audit mode is useful for discovering what permissions your application
 requires before deploying with [`--permission`][]. It can also be combined
-with the [`--allow-fs-read`][], [`--allow-fs-write`][],
-[`--allow-child-process`][], [`--allow-worker`][], [`--allow-addons`][], and
-[`--allow-wasi`][] flags to audit a subset of permissions while granting
-others.
+with the [`--allow-fs-read`][], [`--allow-fs-write`][], [`--allow-net`][],
+[`--allow-child-process`][], [`--allow-worker`][], [`--allow-addons`][],
+[`--allow-wasi`][], and [`--allow-ffi`][] flags to audit a subset of
+permissions while granting others.
 
 When a permission check fails in audit mode, a message is published to the
 diagnostics channel corresponding to the denied scope. The channel names are:
 
 * `node:permission-model:fs` — File System (read and write)
+* `node:permission-model:net` — Network
 * `node:permission-model:child` — Child Process
 * `node:permission-model:worker` — Worker Threads
 * `node:permission-model:inspector` — Inspector
 * `node:permission-model:wasi` — WASI
 * `node:permission-model:addon` — Native Addons
+* `node:permission-model:ffi` — FFI
 
 Each message is an object with the following properties:
 
 * `permission` {string} The name of the denied permission scope.
-* `resource` {string} The resource that access was denied to (e.g. a file path).
+* `resource` {string} The resource that access was denied to (e.g. a file path
+  or host).
 
 ```js
 const diagnostics_channel = require('node:diagnostics_channel');
@@ -266,16 +274,19 @@ Example `node.config.json`:
     "allow-fs-write": ["./bar"],
     "allow-child-process": true,
     "allow-worker": true,
+    "allow-net": true,
     "allow-addons": false,
+    "allow-ffi": false,
     "allow-openssl-store": false
   }
 }
 ```
 
-Run with the configuration file:
+When the `permission` namespace is present in the configuration file, Node.js
+automatically enables the `--permission` flag. Run with:
 
 ```console
-$ node --permission --experimental-default-config-file app.js
+$ node --experimental-default-config-file app.js
 ```
 
 #### Using the Permission Model with `npx`
@@ -322,11 +333,13 @@ There are constraints you need to know before using this system:
 * The model does not inherit to a worker thread.
 * When using the Permission Model the following features will be restricted:
   * Native modules
+  * Network
   * Child process
   * Worker Threads
   * Inspector protocol
   * File system access
   * WASI
+  * FFI
   * OpenSSL STORE loaders
 * The Permission Model is initialized after the Node.js environment is set up.
   However, certain flags such as `--env-file` or `--openssl-config` are designed
@@ -375,8 +388,10 @@ Developers relying on --permission to sandbox untrusted code should be aware tha
 [Security Policy]: https://github.com/nodejs/node/blob/main/SECURITY.md
 [`--allow-addons`]: cli.md#--allow-addons
 [`--allow-child-process`]: cli.md#--allow-child-process
+[`--allow-ffi`]: cli.md#--allow-ffi
 [`--allow-fs-read`]: cli.md#--allow-fs-read
 [`--allow-fs-write`]: cli.md#--allow-fs-write
+[`--allow-net`]: cli.md#--allow-net
 [`--allow-openssl-store`]: cli.md#--allow-openssl-store
 [`--allow-wasi`]: cli.md#--allow-wasi
 [`--allow-worker`]: cli.md#--allow-worker

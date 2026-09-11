@@ -360,7 +360,9 @@ added:
   - v21.2.0
   - v20.11.0
 changes:
-  - version: v24.0.0
+  - version:
+     - v24.0.0
+     - v22.16.0
     pr-url: https://github.com/nodejs/node/pull/58011
     description: This property is no longer experimental.
 -->
@@ -378,7 +380,9 @@ added:
   - v21.2.0
   - v20.11.0
 changes:
-  - version: v24.0.0
+  - version:
+     - v24.0.0
+     - v22.16.0
     pr-url: https://github.com/nodejs/node/pull/58011
     description: This property is no longer experimental.
 -->
@@ -410,6 +414,7 @@ const buffer = readFileSync(new URL('./data.proto', import.meta.url));
 <!-- YAML
 added:
   - v24.2.0
+  - v22.18.0
 -->
 
 > Stability: 1.0 - Early development
@@ -727,7 +732,9 @@ source as a string.
 
 <!-- YAML
 changes:
-  - version: v24.5.0
+  - version:
+     - v24.5.0
+     - v22.19.0
     pr-url: https://github.com/nodejs/node/pull/57038
     description: Wasm modules no longer require the `--experimental-wasm-modules` flag.
 -->
@@ -778,7 +785,9 @@ const instance = await WebAssembly.instantiate(dynamicLibrary, importObject);
 > Stability: 1.2 - Release candidate
 
 <!-- YAML
-added: v24.5.0
+added:
+ - v24.5.0
+ - v22.19.0
 -->
 
 When importing WebAssembly modules, the
@@ -860,7 +869,9 @@ would provide the exports interface for the instantiation of `library.wasm`.
 ### Reserved Wasm Namespaces
 
 <!-- YAML
-added: v24.5.0
+added:
+ - v24.5.0
+ - v22.19.0
 -->
 
 When importing WebAssembly module instances, they cannot use import module

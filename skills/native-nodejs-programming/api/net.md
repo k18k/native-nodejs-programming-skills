@@ -99,7 +99,7 @@ Adds a rule to block the given IP address.
 ### `blockList.addAddresses(addresses[, type])`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `addresses` {string\[]|net.SocketAddress\[]} An array of IPv4 or IPv6
@@ -114,7 +114,7 @@ are inserted under a single internal lock acquisition.
 ### `blockList.addCIDR(cidr)`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `cidr` {string} An IPv4 or IPv6 subnet in CIDR notation (e.g.
@@ -128,7 +128,7 @@ the parsed network address, prefix length, and family.
 ### `blockList.addCIDRs(cidrs)`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `cidrs` {string\[]} An array of IPv4 or IPv6 subnets in CIDR notation.
@@ -202,7 +202,7 @@ console.log(blockList.check('::ffff:123.123.123.123', 'ipv6')); // Prints: true
 ### `blockList.clear()`
 
 <!--
-added: v24.21.0
+added: v26.8.0
 -->
 
 Clears all rules from the `BlockList`.
@@ -212,7 +212,9 @@ Clears all rules from the `BlockList`.
 > Stability: 1.2 - Release candidate
 
  <!-- YAML
-added: v24.5.0
+added:
+ - v24.5.0
+ - v22.19.0
 -->
 
 ```js
@@ -243,7 +245,7 @@ added:
 ### `BlockList.PRIVATE_RANGES`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * Type: {string\[]}
@@ -275,7 +277,7 @@ console.log(blockList.check('8.8.8.8'));       // Prints: false
 ### `blockList.removeAddress(address[, type])`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `address` {string|net.SocketAddress} An IPv4 or IPv6 address.
@@ -288,7 +290,7 @@ specified address does not exist, this is a no-op.
 ### `blockList.removeCIDR(cidr)`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `cidr` {string} An IPv4 or IPv6 subnet in CIDR notation (e.g.
@@ -302,7 +304,7 @@ and family. If the specified subnet does not exist, this is a no-op.
 ### `blockList.removeRange(start, end[, type])`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `start` {string|net.SocketAddress} The starting IPv4 or IPv6 address in the
@@ -317,7 +319,7 @@ If the specified range does not exist, this is a no-op.
 ### `blockList.removeSubnet(net, prefix[, type])`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * `net` {string|net.SocketAddress} The network IPv4 or IPv6 address.
@@ -345,7 +347,7 @@ The list of rules added to the blocklist.
 ### `blockList.size`
 
 <!-- YAML
-added: v24.21.0
+added: v26.8.0
 -->
 
 * Type: {number}
@@ -358,7 +360,9 @@ The number of rules in the blocklist. This is equivalent to
 > Stability: 1.2 - Release candidate
 
  <!-- YAML
-added: v24.5.0
+added:
+ - v24.5.0
+ - v22.19.0
 -->
 
 * Returns Blocklist.rules
@@ -739,6 +743,11 @@ Otherwise, if `path` is specified, it behaves the same as
 [`server.listen(path[, backlog][, callback])`][`server.listen(path)`].
 If none of them is specified, an error will be thrown.
 
+> Using the `signal` option to destroy a long-lived server as a resource cleanup
+> mechanism is deprecated. The `signal` option remains appropriate for
+> cancellation, externally propagated aborts, and timeouts. See
+> [DEP0209](deprecations.md#dep0209-using-abortsignal-to-dispose-of-resources).
+
 If `exclusive` is `false` (default), then cluster workers will use the same
 underlying handle, allowing connection handling duties to be shared. When
 `exclusive` is `true`, the handle is not shared, and attempted port sharing
@@ -940,7 +949,7 @@ listening socket itself (and its pending accept queue) to the receiving thread.
 <!-- YAML
 added: v0.3.4
 changes:
-  - version: v24.15.0
+  - version: v25.6.0
     pr-url: https://github.com/nodejs/node/pull/61503
     description: Added `typeOfService` option.
   - version: v15.14.0
@@ -1632,7 +1641,7 @@ those platforms.
 #### `socket.setKeepAlive([options])`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 -->
 
 * `options` {Object}
@@ -1654,7 +1663,7 @@ socket.setKeepAlive({ enable: true, initialDelay: 1000, interval: 1000, count: 1
 <!-- YAML
 added: v0.1.92
 changes:
-  - version: v24.19.0
+  - version: v26.4.0
     pr-url: https://github.com/nodejs/node/pull/63825
     description: Added the `interval` and `count` arguments to configure
                  `TCP_KEEPINTVL` and `TCP_KEEPCNT`.
@@ -1733,7 +1742,7 @@ The optional `callback` parameter will be added as a one-time listener for the
 ### `socket.getTypeOfService()`
 
 <!-- YAML
-added: v24.15.0
+added: v25.6.0
 -->
 
 * Returns: {integer} The current TOS value.
@@ -1752,7 +1761,7 @@ should verify platform-specific semantics.
 ### `socket.setTypeOfService(tos)`
 
 <!-- YAML
-added: v24.15.0
+added: v25.6.0
 -->
 
 * `tos` {integer} The TOS value to set (0-255).
@@ -1835,7 +1844,7 @@ This property represents the state of the connection as a string.
 ## Class: `net.BoundSocket`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 -->
 
 Allows for the synchronous creation of a pre-bound socket, that can be passed
@@ -1877,9 +1886,9 @@ server.listen(bound); // Adopt as a server, or pass to new net.Socket() instead.
 ### `new net.BoundSocket([options])`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 changes:
-  - version: v24.20.0
+  - version: v26.7.0
     pr-url: https://github.com/nodejs/node/pull/64399
     description: The `path` option is supported.
 -->
@@ -1904,9 +1913,9 @@ changes:
 ### `boundSocket.address()`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 changes:
-  - version: v24.20.0
+  - version: v26.7.0
     pr-url: https://github.com/nodejs/node/pull/64399
     description: The bound path is returned for a pipe bind.
 -->
@@ -1921,7 +1930,7 @@ OS-assigned ephemeral port.
 ### `boundSocket.isPipe`
 
 <!-- YAML
-added: v24.20.0
+added: v26.7.0
 -->
 
 * {boolean}
@@ -1934,7 +1943,7 @@ support.
 ### `boundSocket.fd()`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 -->
 
 * Returns: {integer} The underlying OS file descriptor, or `-1` on platforms
@@ -1949,7 +1958,7 @@ to the adopting [`net.Server`][] or [`net.Socket`][] and `fd()` throws
 ### `boundSocket.close()`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 -->
 
 Releases the bound socket. Only needed when the handle is never adopted.
@@ -1957,7 +1966,7 @@ Releases the bound socket. Only needed when the handle is never adopted.
 ### `boundSocket[Symbol.dispose]()`
 
 <!-- YAML
-added: v24.19.0
+added: v26.4.0
 -->
 
 Closes the handle if it has not been adopted or closed; otherwise a no-op.
@@ -2347,7 +2356,7 @@ added:
 -->
 
 Gets the current default value of the `autoSelectFamilyAttemptTimeout` option of [`socket.connect(options)`][].
-The initial default value is `250` or the value specified via the command line
+The initial default value is `500` or the value specified via the command line
 option `--network-family-autoselection-attempt-timeout`.
 
 * Returns: {number} The current default value of the `autoSelectFamilyAttemptTimeout` option.

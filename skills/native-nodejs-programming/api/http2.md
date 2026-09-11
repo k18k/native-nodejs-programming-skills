@@ -723,7 +723,7 @@ registered as a listener on the `'timeout'` event.
 <!-- YAML
 added: v8.4.0
 changes:
-  - version: v24.20.0
+  - version: v26.6.0
     pr-url: https://github.com/nodejs/node/pull/64427
     description: Calling `destroy` no longer throws and instead destroys the
                  `Http2Session`.
@@ -1081,7 +1081,10 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/58293
     description: The `weight` option is now ignored, setting it will trigger a
                  runtime warning.
-  - version: v24.2.0
+  - version:
+      - v24.2.0
+      - v22.17.0
+      - v20.19.6
     pr-url: https://github.com/nodejs/node/pull/58313
     description: Following the deprecation of priority signaling as of RFC 9113,
                  `weight` option is deprecated.
@@ -1476,7 +1479,10 @@ numeric stream identifier.
 
 <!-- YAML
 added: v8.4.0
-deprecated: v24.2.0
+deprecated:
+ - v24.2.0
+ - v22.17.0
+ - v20.19.6
 changes:
   - version: v24.2.0
     pr-url: https://github.com/nodejs/node/pull/58293
@@ -1588,7 +1594,10 @@ changes:
     pr-url: https://github.com/nodejs/node/pull/58293
     description: The `state.weight` property is now always set to 16 and
                  `sumDependencyWeight` is always set to 0.
-  - version: v24.2.0
+  - version:
+      - v24.2.0
+      - v22.17.0
+      - v20.19.6
     pr-url: https://github.com/nodejs/node/pull/58313
     description: Following the deprecation of priority signaling as of RFC 9113,
                  `weight` and `sumDependencyWeight` options are deprecated.
@@ -1869,6 +1878,7 @@ added: v8.4.0
 changes:
   - version:
     - v24.7.0
+    - v22.20.0
     pr-url: https://github.com/nodejs/node/pull/59455
     description: Allow passing headers in raw array format.
   - version:
@@ -2794,10 +2804,10 @@ Throws `ERR_INVALID_ARG_TYPE` for invalid `settings` argument.
 <!-- YAML
 added: v8.4.0
 changes:
-  - version: v24.15.0
+  - version: v25.7.0
     pr-url: https://github.com/nodejs/node/pull/59917
     description: Added the `strictSingleValueFields` option.
-  - version: v24.15.0
+  - version: v25.7.0
     pr-url: https://github.com/nodejs/node/pull/61713
     description: Added `http1Options` option. The `Http1IncomingMessage`
                  and `Http1ServerResponse` options are now deprecated.
@@ -3018,10 +3028,10 @@ server.listen(8000);
 <!-- YAML
 added: v8.4.0
 changes:
-  - version: v24.15.0
+  - version: v25.7.0
     pr-url: https://github.com/nodejs/node/pull/59917
     description: Added the `strictSingleValueFields` option.
-  - version: v24.15.0
+  - version: v25.7.0
     pr-url: https://github.com/nodejs/node/pull/61713
     description: Added `http1Options` option.
   - version:
@@ -4976,7 +4986,7 @@ response.writeEarlyHints({
 #### `response.writeInformation(statusCode[, headers])`
 
 <!-- YAML
-added: v24.18.0
+added: v26.2.0
 -->
 
 * `statusCode` {number} An HTTP 1xx informational status code, between `100`

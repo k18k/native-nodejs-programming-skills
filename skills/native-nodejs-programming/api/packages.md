@@ -528,7 +528,9 @@ added:
   - v14.6.0
   - v12.19.0
 changes:
-  - version: v24.14.0
+  - version:
+     - v25.4.0
+     - v24.14.0
     pr-url: https://github.com/nodejs/node/pull/60864
     description: Allow subpath imports that start with `#/`.
 -->
@@ -948,7 +950,7 @@ See [the package examples repository][] for details.
 ## Package maps
 
 <!-- YAML
-added: v24.20.0
+added: v26.4.0
 -->
 
 > Stability: 1 - Experimental. Enable this API with [`--experimental-package-map`][].

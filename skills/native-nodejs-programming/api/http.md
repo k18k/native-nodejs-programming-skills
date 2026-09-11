@@ -126,14 +126,17 @@ added: v0.3.4
 changes:
   - version:
     - v24.7.0
+    - v22.20.0
     pr-url: https://github.com/nodejs/node/pull/59315
     description: Add support for `agentKeepAliveTimeoutBuffer`.
   - version:
     - v24.5.0
+    - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/58980
     description: Add support for `proxyEnv`.
   - version:
     - v24.5.0
+    - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/58980
     description: Add support for `defaultPort` and `protocol`.
   - version:
@@ -764,7 +767,7 @@ added: v0.1.94
 -->
 
 * `response` {http.IncomingMessage}
-* `socket` {stream.Duplex}
+* `stream` {stream.Duplex}
 * `head` {Buffer}
 
 Emitted each time a server responds to a request with an upgrade. If this
@@ -787,13 +790,13 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('okay');
 });
-server.on('upgrade', (req, socket, head) => {
-  socket.write('HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
+server.on('upgrade', (req, stream, head) => {
+  stream.write('HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
                'Upgrade: WebSocket\r\n' +
                'Connection: Upgrade\r\n' +
                '\r\n');
 
-  socket.pipe(socket); // echo back
+  stream.pipe(stream); // echo back
 });
 
 // Now that server is running
@@ -812,9 +815,9 @@ server.listen(1337, '127.0.0.1', () => {
   const req = http.request(options);
   req.end();
 
-  req.on('upgrade', (res, socket, upgradeHead) => {
+  req.on('upgrade', (res, stream, upgradeHead) => {
     console.log('got upgraded!');
-    socket.end();
+    stream.end();
     process.exit(0);
   });
 });
@@ -828,13 +831,13 @@ const server = http.createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('okay');
 });
-server.on('upgrade', (req, socket, head) => {
-  socket.write('HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
+server.on('upgrade', (req, stream, head) => {
+  stream.write('HTTP/1.1 101 Web Socket Protocol Handshake\r\n' +
                'Upgrade: WebSocket\r\n' +
                'Connection: Upgrade\r\n' +
                '\r\n');
 
-  socket.pipe(socket); // echo back
+  stream.pipe(stream); // echo back
 });
 
 // Now that server is running
@@ -853,9 +856,9 @@ server.listen(1337, '127.0.0.1', () => {
   const req = http.request(options);
   req.end();
 
-  req.on('upgrade', (res, socket, upgradeHead) => {
+  req.on('upgrade', (res, stream, upgradeHead) => {
     console.log('got upgraded!');
-    socket.end();
+    stream.end();
     process.exit(0);
   });
 });
@@ -1696,7 +1699,17 @@ per connection (in the case of HTTP Keep-Alive connections).
 <!-- YAML
 added: v0.1.94
 changes:
-  - version: v24.9.0
+  - version: v26.0.0
+    pr-url: https://github.com/nodejs/node/pull/60016
+    description: Request bodies are no longer exposed raw (unparsed) on the
+                 socket argument. Instead, if a body is received, the stream
+                 argument will be a duplex that emits socket content only
+                 after the request body, while the parsed request body data
+                 will be emitted from the request, just as in normal server
+                 `'request'` events.
+  - version:
+     - v24.9.0
+     - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/59824
     description: Whether this event is fired can now be controlled by the
                  `shouldUpgradeCallback` and sockets will be destroyed
@@ -1709,7 +1722,7 @@ changes:
 
 * `request` {http.IncomingMessage} Arguments for the HTTP request, as it is in
   the [`'request'`][] event
-* `socket` {stream.Duplex} Network socket between the server and client
+* `stream` {stream.Duplex} The upgraded stream between the server and client
 * `head` {Buffer} The first packet of the upgraded stream (may be empty)
 
 Emitted each time a client's HTTP upgrade request is accepted. By default
@@ -1717,23 +1730,29 @@ all HTTP upgrade requests are ignored (i.e. only regular `'request'` events
 are emitted, sticking with the normal HTTP request/response flow) unless you
 listen to this event, in which case they are all accepted (i.e. the `'upgrade'`
 event is emitted instead, and future communication must handled directly
-through the raw socket). You can control this more precisely by using the
+through the raw stream). You can control this more precisely by using the
 server `shouldUpgradeCallback` option.
 
 Listening to this event is optional and clients cannot insist on a protocol
 change.
 
-After this event is emitted, the request's socket will not have a `'data'`
-event listener, meaning it will need to be bound in order to handle data
-sent to the server on that socket.
-
 If an upgrade is accepted by `shouldUpgradeCallback` but no event handler
-is registered then the socket is destroyed, resulting in an immediate
+is registered then the socket will be destroyed, resulting in an immediate
 connection closure for the client.
 
-This event is guaranteed to be passed an instance of the {net.Socket} class,
-a subclass of {stream.Duplex}, unless the user specifies a socket
-type other than {net.Socket}.
+In the uncommon case that the incoming request has a body, this body will be
+parsed as normal, separate to the upgrade stream, and the raw stream data will
+only begin after it has completed. To ensure that reading from the stream isn't
+blocked by waiting for the request body to be read, any reads on the stream
+will start the request body flowing automatically. If you want to read the
+request body, ensure that you do so (i.e. you attach `'data'` listeners)
+before starting to read from the upgraded stream.
+
+The stream argument will typically be the {net.Socket} instance used by the
+request, but in some cases (such as with a request body) it may be a duplex
+stream. If required, you can access the raw connection underlying the request
+via [`request.socket`][], which is guaranteed to be an instance of {net.Socket}
+unless the user specified another socket type.
 
 ### `server.close([callback])`
 
@@ -2014,7 +2033,9 @@ affects new connections to the server, not any existing connections.
 ### `server.keepAliveTimeoutBuffer`
 
 <!-- YAML
-added: v24.6.0
+added:
+ - v24.6.0
+ - v22.19.0
 -->
 
 * Type: {number} Timeout in milliseconds. **Default:** `1000` (1 second).
@@ -2688,7 +2709,7 @@ will result in a [`TypeError`][] being thrown.
 ### `response.writeInformation(statusCode[, headers][, callback])`
 
 <!-- YAML
-added: v24.18.0
+added: v26.2.0
 -->
 
 * `statusCode` {number} An HTTP 1xx informational status code, between `100`
@@ -3009,9 +3030,9 @@ Calls `message.socket.setTimeout(msecs, callback)`.
 ### `message.signal`
 
 <!-- YAML
-added: v24.16.0
+added: v26.1.0
 changes:
-  - version: v24.20.0
+  - version: v26.7.0
     pr-url: https://github.com/nodejs/node/pull/64392
     description: The signal is no longer aborted after the message
                  completes normally.
@@ -3658,13 +3679,17 @@ Found'`.
 <!-- YAML
 added: v0.1.13
 changes:
-  - version: v24.19.0
+  - version: v26.3.0
     pr-url: https://github.com/nodejs/node/pull/61597
     description: The `httpValidation` option is supported now.
-  - version: v24.12.0
+  - version:
+      - v25.1.0
+      - v24.12.0
     pr-url: https://github.com/nodejs/node/pull/59778
     description: Add optimizeEmptyRequests option.
-  - version: v24.9.0
+  - version:
+     - v24.9.0
+     - v22.21.0
     pr-url: https://github.com/nodejs/node/pull/59824
     description: The `shouldUpgradeCallback` option is now supported.
   - version:
@@ -3979,7 +4004,7 @@ This can be overridden for servers and client requests by passing the
 <!-- YAML
 added: v0.3.6
 changes:
-  - version: v24.19.0
+  - version: v26.3.0
     pr-url: https://github.com/nodejs/node/pull/61597
     description: The `httpValidation` option is supported now.
   - version:
@@ -4470,6 +4495,7 @@ Set the maximum number of idle HTTP parsers.
 
 <!-- YAML
 added:
+  - v25.4.0
   - v24.14.0
 -->
 
@@ -4504,7 +4530,9 @@ A browser-compatible implementation of {WebSocket}.
 ## Built-in Proxy Support
 
 <!-- YAML
-added: v24.5.0
+added:
+ - v24.5.0
+ - v22.21.0
 -->
 
 > Stability: 1.1 - Active development

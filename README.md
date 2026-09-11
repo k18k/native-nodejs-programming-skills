@@ -2,8 +2,8 @@
 
 [![Node.js](https://img.shields.io/badge/Node-26%2B-brightgreen?logo=node.js\&logoColor=white)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-7.0.2-blue?logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
-[![API docs](https://img.shields.io/badge/API%20docs-Node%2026-brightgreen?logo=node.js\&logoColor=white)](https://nodejs.org/docs/latest-v26.x/api/)
 [![Build](https://img.shields.io/github/actions/workflow/status/k18k/native-nodejs-programming-skills/update-nodejs-skill.yml?branch=main&label=workflow)](https://github.com/k18k/native-nodejs-programming-skills/actions)
+[![API docs](https://img.shields.io/badge/API%20docs-Node%2026-brightgreen?logo=node.js\&logoColor=white)](https://nodejs.org/docs/latest-v26.x/api/)
 
 ---
 

@@ -842,7 +842,9 @@ size is reached when the context is created.
 ### `ERR_CPU_PROFILE_ALREADY_STARTED`
 
 <!-- YAML
-added: v24.8.0
+added:
+  - v24.8.0
+  - v22.20.0
 -->
 
 The CPU profile with the given name is already started.
@@ -852,7 +854,9 @@ The CPU profile with the given name is already started.
 ### `ERR_CPU_PROFILE_NOT_STARTED`
 
 <!-- YAML
-added: v24.8.0
+added:
+  - v24.8.0
+  - v22.20.0
 -->
 
 The CPU profile with the given name is not started.
@@ -862,7 +866,9 @@ The CPU profile with the given name is not started.
 ### `ERR_CPU_PROFILE_TOO_MANY`
 
 <!-- YAML
-added: v24.8.0
+added:
+  - v24.8.0
+  - v22.20.0
 -->
 
 There are too many CPU profiles being collected.
@@ -1326,6 +1332,24 @@ added: v14.0.0
 Used when a feature that is not available
 to the current platform which is running Node.js is used.
 
+<a id="ERR_FFI_CALL_FAILED"></a>
+
+### `ERR_FFI_CALL_FAILED`
+
+A low-level FFI call failed.
+
+<a id="ERR_FFI_INVALID_POINTER"></a>
+
+### `ERR_FFI_INVALID_POINTER`
+
+An invalid pointer was passed to an FFI operation.
+
+<a id="ERR_FFI_LIBRARY_CLOSED"></a>
+
+### `ERR_FFI_LIBRARY_CLOSED`
+
+An operation was attempted on an FFI dynamic library after it was closed.
+
 <a id="ERR_FS_CP_DIR_TO_NON_DIR"></a>
 
 ### `ERR_FS_CP_DIR_TO_NON_DIR`
@@ -1737,7 +1761,7 @@ as specified through the `maxSessionInvalidFrames` option, has been exceeded.
 ### `ERR_HTTP2_TOO_MANY_ORIGINS`
 
 <!-- YAML
-added: v24.17.0
+added: v26.3.1
 -->
 
 The number of uniq origin sent by the server has exceeded the value defined in
@@ -2452,6 +2476,18 @@ OpenSSL crypto support.
 An attempt was made to use features that require [ICU][], but Node.js was not
 compiled with ICU support.
 
+<a id="ERR_NO_TEMPORAL"></a>
+
+### `ERR_NO_TEMPORAL`
+
+<!-- YAML
+added: v26.2.0
+-->
+
+An attempt was made to use features that require [`Temporal`][], but Node.js was not
+compiled with `Temporal` support or it has been disabled in the current environment
+(for example, when running with `--no-harmony-temporal`).
+
 <a id="ERR_NO_TYPESCRIPT"></a>
 
 ### `ERR_NO_TYPESCRIPT`
@@ -2481,7 +2517,9 @@ of an asynchronous operation.
 ### `ERR_OPTIONS_BEFORE_BOOTSTRAPPING`
 
 <!-- YAML
-added: v23.10.0
+added:
+ - v23.10.0
+ - v22.16.0
 -->
 
 An attempt was made to get options before the bootstrapping was completed.
@@ -2504,7 +2542,7 @@ package specifier mapping.
 ### `ERR_PACKAGE_MAP_EXTERNAL_FILE`
 
 <!-- YAML
-added: v24.20.0
+added: v26.4.0
 -->
 
 A module attempted to resolve a bare specifier using the [package map][], but
@@ -2524,7 +2562,7 @@ covers the importing file.
 ### `ERR_PACKAGE_MAP_INVALID`
 
 <!-- YAML
-added: v24.20.0
+added: v26.4.0
 -->
 
 The [package map][] configuration file is invalid. This can occur when:
@@ -2545,7 +2583,7 @@ Error [ERR_PACKAGE_MAP_INVALID]: Invalid package map at "./missing.json": file n
 ### `ERR_PACKAGE_MAP_KEY_NOT_FOUND`
 
 <!-- YAML
-added: v24.20.0
+added: v26.4.0
 -->
 
 A package's `dependencies` object in the [package map][] references a package
@@ -2712,7 +2750,7 @@ Opening a QUIC stream failed.
 ### `ERR_QUIC_STREAM_ABORTED`
 
 <!-- YAML
-added: v24.20.0
+added: v26.2.0
 -->
 
 > Stability: 1 - Experimental
@@ -2725,7 +2763,7 @@ or session with an explicit application or transport error code.
 ### `ERR_QUIC_STREAM_RESET`
 
 <!-- YAML
-added: v24.20.0
+added: v26.2.0
 -->
 
 > Stability: 1 - Experimental
@@ -2767,7 +2805,7 @@ A QUIC session failed because version negotiation is required.
 
 <!-- YAML
 changes:
-  - version: v24.20.0
+  - version: v26.5.0
     pr-url: https://github.com/nodejs/node/pull/64260
     description: Added the `requireStack` and `topLevelAwaitLocations` properties.
 -->
@@ -2830,7 +2868,7 @@ ES modules. When `require()` encounters an ES module that contains top-level
 ### `ERR_REQUIRE_ESM_RACE_CONDITION`
 
 <!-- YAML
-added: v24.16.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental.
@@ -3621,6 +3659,58 @@ All attempts at serializing an uncaught exception from a worker thread failed.
 ### `ERR_WORKER_UNSUPPORTED_OPERATION`
 
 The requested functionality is not supported in worker threads.
+
+<a id="ERR_ZIP_ARCHIVE_TOO_LARGE"></a>
+
+### `ERR_ZIP_ARCHIVE_TOO_LARGE`
+
+An archive-level structure exceeds a limit: the archive comment exceeds the
+65,535-byte encoded length that the ZIP format allows, or the archive's
+central directory is too large to buffer in memory.
+
+<a id="ERR_ZIP_ENTRY_CORRUPT"></a>
+
+### `ERR_ZIP_ENTRY_CORRUPT`
+
+A ZIP archive entry failed CRC-32 verification, or produced more or fewer
+bytes than its declared uncompressed size, while being read.
+
+<a id="ERR_ZIP_ENTRY_NOT_FOUND"></a>
+
+### `ERR_ZIP_ENTRY_NOT_FOUND`
+
+A named entry was requested from a [`ZipFile`][] or [`ZipBuffer`][] that does
+not contain an entry with that name.
+
+<a id="ERR_ZIP_ENTRY_TOO_LARGE"></a>
+
+### `ERR_ZIP_ENTRY_TOO_LARGE`
+
+A ZIP archive entry's declared size exceeds the configured limit, or a
+provided entry name or comment exceeds the 65,535-byte encoded length that
+the ZIP format allows.
+
+<a id="ERR_ZIP_INVALID_ARCHIVE"></a>
+
+### `ERR_ZIP_INVALID_ARCHIVE`
+
+Data that was expected to be a ZIP archive, or a structure within one, is
+missing, out of bounds, or otherwise inconsistent with the ZIP format.
+
+<a id="ERR_ZIP_NOT_WRITABLE"></a>
+
+### `ERR_ZIP_NOT_WRITABLE`
+
+A mutating method (such as `zipFile.addEntry()` or `zipFile.delete()`) was
+called on a [`ZipFile`][] that was not opened with `{ writable: true }`.
+
+<a id="ERR_ZIP_UNSUPPORTED_FEATURE"></a>
+
+### `ERR_ZIP_UNSUPPORTED_FEATURE`
+
+A ZIP archive uses a feature outside of what this implementation supports,
+such as entry encryption, an unsupported compression method, or a multi-disk
+archive.
 
 <a id="ERR_ZLIB_INITIALIZATION_FAILED"></a>
 
@@ -4563,7 +4653,10 @@ An error occurred trying to allocate memory. This should never happen.
 [`QuicError`]: quic.md#class-quicerror
 [`REPL`]: repl.md
 [`ServerResponse`]: http.md#class-httpserverresponse
+[`Temporal`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal
 [`Writable`]: stream.md#class-streamwritable
+[`ZipBuffer`]: zlib.md#class-zlibzipbuffer
+[`ZipFile`]: zlib.md#class-zlibzipfile
 [`child_process`]: child_process.md
 [`cipher.getAuthTag()`]: crypto.md#ciphergetauthtag
 [`crypto.getDiffieHellman()`]: crypto.md#cryptogetdiffiehellmangroupname

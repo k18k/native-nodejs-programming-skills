@@ -514,7 +514,9 @@ inspector.Network.requestWillBeSent({
 ### `inspector.Network.dataReceived([params])`
 
 <!-- YAML
-added: v24.2.0
+added:
+ - v24.2.0
+ - v22.17.0
 -->
 
 * `params` {Object}
@@ -529,7 +531,9 @@ Also enables `Network.getResponseBody` command to retrieve the response data.
 ### `inspector.Network.dataSent([params])`
 
 <!-- YAML
-added: v24.3.0
+added:
+  - v24.3.0
+  - v22.18.0
 -->
 
 * `params` {Object}
@@ -645,6 +649,7 @@ This event indicates that a WebSocket connection has been closed.
 <!-- YAML
 added:
   - v24.5.0
+  - v22.19.0
 -->
 
 > Stability: 1.1 - Active Development
@@ -681,7 +686,7 @@ For more details, see the official CDP documentation: [Network.loadNetworkResour
 
 <!-- YAML
 added:
-  - v24.16.0
+  - v25.5.0
 -->
 
 * `params` {Object}
@@ -702,7 +707,7 @@ This event indicates that a new item has been added to the storage.
 
 <!-- YAML
 added:
-  - v24.16.0
+  - v25.5.0
 -->
 
 * `params` {Object}
@@ -722,7 +727,7 @@ This event indicates that an item has been removed from the storage.
 
 <!-- YAML
 added:
-  - v24.16.0
+  - v25.5.0
 -->
 
 * `params` {Object}
@@ -744,7 +749,7 @@ This event indicates that a storage item has been updated.
 
 <!-- YAML
 added:
-  - v24.16.0
+  - v25.5.0
 -->
 
 * `params` {Object}
@@ -764,7 +769,7 @@ storage.
 
 <!-- YAML
 added:
-  - v24.16.0
+  - v25.5.0
 -->
 
 * `params` {Object}

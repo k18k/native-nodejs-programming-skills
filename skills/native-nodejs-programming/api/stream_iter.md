@@ -1,6 +1,6 @@
 # Iterable Streams
 
-<!--introduced_in=v24.20.0-->
+<!--introduced_in=v25.9.0-->
 
 > Stability: 1 - Experimental – Enable this API with the [`--experimental-stream-iter`][] CLI flag.
 
@@ -522,7 +522,7 @@ Including the `node:` prefix on the module specifier is optional.
 ### `from(input)`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `input` {string|ArrayBuffer|ArrayBufferView|Iterable|AsyncIterable|Object}
@@ -562,7 +562,7 @@ run().catch(console.error);
 ### `fromSync(input)`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `input` {string|ArrayBuffer|ArrayBufferView|Iterable|Object}
@@ -592,7 +592,7 @@ console.log(textSync(fromSync('hello'))); // 'hello'
 ### `pipeTo(source[, ...transforms], writer[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable|Iterable} The data source.
@@ -649,7 +649,7 @@ run().catch(console.error);
 ### `pipeToSync(source[, ...transforms], writer[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} The sync data source.
@@ -669,7 +669,7 @@ The `writer` must have the `*Sync` methods (`writeSync`, `writevSync`,
 ### `pull(source[, ...transforms][, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable|Iterable} The data source.
@@ -740,7 +740,7 @@ ac.abort(); // Pipeline throws AbortError on next iteration
 ### `pullSync(source[, ...transforms])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} The sync data source.
@@ -754,7 +754,7 @@ Synchronous version of [`pull()`][]. All transforms must be synchronous.
 ### `push([...transforms][, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `...transforms` {Function|Object} Optional transforms applied to the
@@ -818,7 +818,7 @@ The writer returned by `push()` conforms to the \[Writer interface]\[].
 ### `duplex([options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `options` {Object}
@@ -895,7 +895,7 @@ run().catch(console.error);
 ### `array(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable|Iterable} whose chunks must be {Uint8Array\[]}
@@ -910,7 +910,7 @@ Collect all chunks as an array of `Uint8Array` values (without concatenating).
 ### `arrayBuffer(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable|Iterable} whose chunks must be {Uint8Array\[]}
@@ -925,7 +925,7 @@ Collect all bytes into an `ArrayBuffer`.
 ### `arrayBufferSync(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} whose chunks must be {Uint8Array\[]}
@@ -939,7 +939,7 @@ Synchronous version of [`arrayBuffer()`][].
 ### `arraySync(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} whose chunks must be {Uint8Array\[]}
@@ -953,7 +953,7 @@ Synchronous version of [`array()`][].
 ### `bytes(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable|Iterable} whose chunks must be {Uint8Array\[]}
@@ -986,7 +986,7 @@ run().catch(console.error);
 ### `bytesSync(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} whose chunks must be {Uint8Array\[]}
@@ -1000,7 +1000,7 @@ Synchronous version of [`bytes()`][].
 ### `text(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable|Iterable} whose chunks must be {Uint8Array\[]}
@@ -1032,7 +1032,7 @@ run().catch(console.error);
 ### `textSync(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} whose chunks must be {Uint8Array\[]}
@@ -1049,7 +1049,7 @@ Synchronous version of [`text()`][].
 ### `ondrain(drainable)`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `drainable` {Object} An object implementing the drainable protocol.
@@ -1106,7 +1106,7 @@ run().catch(console.error);
 ### `merge(...sources[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `...sources` {AsyncIterable|Iterable} whose chunks must be {Uint8Array\[]}
@@ -1139,7 +1139,7 @@ run().catch(console.error);
 ### `tap(callback)`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `callback` {Function} `(chunks) => void` Called with each batch.
@@ -1178,7 +1178,7 @@ chunks by the tapping callback; but return values are ignored.
 ### `tapSync(callback)`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `callback` {Function}
@@ -1191,7 +1191,7 @@ Synchronous version of [`tap()`][].
 ### `broadcast([options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `options` {Object}
@@ -1286,7 +1286,7 @@ Alias for `broadcast.cancel()`.
 ### `Broadcast.from(input[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `input` {AsyncIterable|Iterable|BroadcastChannel}
@@ -1299,7 +1299,7 @@ automatically and pushed to all subscribers.
 ### `share(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {AsyncIterable} The source to share.
@@ -1388,10 +1388,6 @@ Alias for `share.cancel()`.
 
 ### Interface: `Shareable`
 
-<!-- YAML
-added: v24.20.0
--->
-
 #### `sharable[Symbol.for('Stream.shareProtocol')]`
 
 * {Function} that returns a {Share}.
@@ -1405,13 +1401,13 @@ added: v24.20.0
 ### `shareSync(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `source` {Iterable} The sync source to share.
 * `options` {Object}
-  * `highWaterMark` {number} Must be >= 1; values below 1 are clamped
-    to 1. **Default:** `16`.
+  * `budget` {number} Must be >= 16384.
+    **Default:** `65536`.
   * `backpressure` {string} **Default:** `'strict'`.
 * Returns: {SyncShare}
 
@@ -1422,7 +1418,7 @@ Synchronous version of [`share()`][].
 #### Static method: `SyncShare.fromSync(input[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v25.9.0
 -->
 
 * `input` {Iterable|SyncShareable}
@@ -1479,7 +1475,7 @@ directly. The minimum contract is described below for each function.
 ### `fromReadable(readable)`
 
 <!-- YAML
-added: v24.20.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental
@@ -1533,7 +1529,7 @@ run();
 ### `fromWritable(writable[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental
@@ -1598,7 +1594,7 @@ run();
 ### `toReadable(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental
@@ -1640,7 +1636,7 @@ readable.pipe(createWriteStream('output.gz'));
 ### `toReadableSync(source[, options])`
 
 <!-- YAML
-added: v24.20.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental
@@ -1677,7 +1673,7 @@ console.log(readable.read().toString()); // 'hello world'
 ### `toWritable(writer)`
 
 <!-- YAML
-added: v24.20.0
+added: v26.1.0
 -->
 
 > Stability: 1 - Experimental

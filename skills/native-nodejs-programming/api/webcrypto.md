@@ -2,7 +2,7 @@
 
 <!-- YAML
 changes:
-  - version: v24.18.0
+  - version: v25.9.0
     pr-url: https://github.com/nodejs/node/pull/62183
     description: TurboSHAKE and KangarooTwelve algorithms
       are now supported.
@@ -33,6 +33,7 @@ changes:
   - version:
     - v23.5.0
     - v22.13.0
+    - v20.19.3
     pr-url: https://github.com/nodejs/node/pull/56142
     description: Algorithms `Ed25519` and `X25519` are now stable.
   - version:
@@ -950,7 +951,7 @@ The algorithms currently supported include:
 <!-- YAML
 added: v15.0.0
 changes:
-  - version: v24.18.0
+  - version: v25.9.0
     pr-url: https://github.com/nodejs/node/pull/62183
     description: TurboSHAKE and KangarooTwelve algorithms
       are now supported.
@@ -1071,7 +1072,7 @@ The algorithms currently supported include:
 <!-- YAML
 added: v15.0.0
 changes:
-  - version: v24.18.0
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62706
     description: Added JWK format support for ML-KEM key types.
   - version: v24.8.0
@@ -1199,10 +1200,10 @@ The {CryptoKey} (secret key) generating algorithms supported include:
 <!-- YAML
 added: v15.0.0
 changes:
-  - version: v24.18.0
+  - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62706
     description: Added JWK format support for ML-KEM key types.
-  - version: v24.15.0
+  - version: v25.9.0
     pr-url: https://github.com/nodejs/node/pull/62218
     description: Importing ML-DSA and ML-KEM PKCS#8 keys
       without a seed is no longer supported.
@@ -1784,7 +1785,7 @@ the message.
 <!-- YAML
 added: v24.7.0
 changes:
-  - version: v24.15.0
+  - version: v25.9.0
     pr-url: https://github.com/nodejs/node/pull/61875
     description: Renamed `cShakeParams.length` to `cShakeParams.outputLength`.
 -->
@@ -1800,7 +1801,7 @@ added: v24.7.0
 #### `cShakeParams.outputLength`
 
 <!-- YAML
-added: v24.15.0
+added: v25.9.0
 -->
 
 * Type: {number} represents the requested output length in bits.
@@ -1810,7 +1811,7 @@ added: v24.15.0
 <!-- YAML
 added: v24.7.0
 changes:
-  - version: v24.19.0
+  - version: v26.4.0
     pr-url: https://github.com/nodejs/node/pull/63988
     description: Named cSHAKE variants are now accepted.
 -->
@@ -1830,7 +1831,7 @@ domain-separate functions built on top of cSHAKE. Accepted values are:
 <!-- YAML
 added: v24.7.0
 changes:
-  - version: v24.19.0
+  - version: v26.4.0
     pr-url: https://github.com/nodejs/node/pull/63988
     description: Non-empty customization is now supported.
 -->
@@ -2242,15 +2243,15 @@ added: v15.0.0
 ### Class: `KangarooTwelveParams`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
 #### `kangarooTwelveParams.customization`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 changes:
-  - version: v24.20.0
+  - version: v26.6.0
     pr-url: https://github.com/nodejs/node/pull/64557
     description: Limit customization to 512 bytes.
 -->
@@ -2263,15 +2264,15 @@ bytes.
 #### `kangarooTwelveParams.name`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
-* Type: {string} Must be `'KT128'`[^modern-algos] or `'KT256'`[^modern-algos]
+* Type: {string} Must be `'KT128'`[^modern-algos] or `'KT256'`[^modern-algos].
 
 #### `kangarooTwelveParams.outputLength`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
 * Type: {number} represents the requested output length in bits.
@@ -2356,7 +2357,7 @@ added: v24.8.0
 <!-- YAML
 added: v24.8.0
 changes:
-  - version: v24.15.0
+  - version: v25.9.0
     pr-url: https://github.com/nodejs/node/pull/61875
     description: Renamed `kmacParams.length` to `kmacParams.outputLength`.
 -->
@@ -2372,7 +2373,7 @@ added: v24.8.0
 #### `kmacParams.outputLength`
 
 <!-- YAML
-added: v24.15.0
+added: v25.9.0
 -->
 
 * Type: {number} represents the requested output length in bits.
@@ -2647,13 +2648,13 @@ The length (in bytes) of the random salt to use.
 ### Class: `TurboShakeParams`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
 #### `turboShakeParams.domainSeparation`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
 * Type: {number|undefined}
@@ -2663,15 +2664,15 @@ The optional domain separation byte (0x01-0x7f). Defaults to `0x1f`.
 #### `turboShakeParams.name`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
-* Type: {string} Must be `'TurboSHAKE128'`[^modern-algos] or `'TurboSHAKE256'`[^modern-algos]
+* Type: {string} Must be `'TurboSHAKE128'`[^modern-algos] or `'TurboSHAKE256'`[^modern-algos].
 
 #### `turboShakeParams.outputLength`
 
 <!-- YAML
-added: v24.18.0
+added: v25.9.0
 -->
 
 * Type: {number} represents the requested output length in bits.
