@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=24"
+    "node": ">=26"
   },
   "scripts": {
     "check": "tsc --noEmit",
@@ -14,9 +14,6 @@
   },
   "devDependencies": {
     "@types/node": "latest",
-    "typescript": "latest"
-  },
-  "dependencies": {
-    "@octokit/rest": "^22.0.1"
+    "typescript": "^7.0.2"
   }
 }
