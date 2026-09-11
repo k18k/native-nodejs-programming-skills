@@ -53,8 +53,6 @@ try {
 }
 ```
 
-<!-- eslint-enable no-global-assign -->
-
 When using the lexical ESM `import` keyword, the error can only be
 caught if a handler for `process.on('uncaughtException')` is registered
 _before_ any attempt to load the module is made (using, for instance,
@@ -75,38 +73,48 @@ try {
 
 ## Asymmetric key types
 
-The following table lists the asymmetric key types recognized by the
-[`KeyObject`][] API and the export/import formats supported for each key type.
+The following lists group the asymmetric key types recognized by the
+[`KeyObject`][] API by the complete set of formats supported for importing and
+exporting each type.
 
-| Key Type                           | Description        | OID                     | `'pem'` | `'der'` | `'jwk'` | `'raw-public'` | `'raw-private'` | `'raw-seed'` |
-| ---------------------------------- | ------------------ | ----------------------- | ------- | ------- | ------- | -------------- | --------------- | ------------ |
-| `'dh'`                             | Diffie-Hellman     | 1.2.840.113549.1.3.1    | ✔       | ✔       |         |                |                 |              |
-| `'dsa'`                            | DSA                | 1.2.840.10040.4.1       | ✔       | ✔       |         |                |                 |              |
-| `'ec'`                             | Elliptic curve     | 1.2.840.10045.2.1       | ✔       | ✔       | ✔       | ✔              | ✔               |              |
-| `'ed25519'`                        | Ed25519            | 1.3.101.112             | ✔       | ✔       | ✔       | ✔              | ✔               |              |
-| `'ed448'`                          | Ed448              | 1.3.101.113             | ✔       | ✔       | ✔       | ✔              | ✔               |              |
-| `'ml-dsa-44'`[^openssl35]          | ML-DSA-44          | 2.16.840.1.101.3.4.3.17 | ✔       | ✔       | ✔       | ✔              |                 | ✔            |
-| `'ml-dsa-65'`[^openssl35]          | ML-DSA-65          | 2.16.840.1.101.3.4.3.18 | ✔       | ✔       | ✔       | ✔              |                 | ✔            |
-| `'ml-dsa-87'`[^openssl35]          | ML-DSA-87          | 2.16.840.1.101.3.4.3.19 | ✔       | ✔       | ✔       | ✔              |                 | ✔            |
-| `'ml-kem-512'`[^openssl35]         | ML-KEM-512         | 2.16.840.1.101.3.4.4.1  | ✔       | ✔       |         | ✔              |                 | ✔            |
-| `'ml-kem-768'`[^openssl35]         | ML-KEM-768         | 2.16.840.1.101.3.4.4.2  | ✔       | ✔       |         | ✔              |                 | ✔            |
-| `'ml-kem-1024'`[^openssl35]        | ML-KEM-1024        | 2.16.840.1.101.3.4.4.3  | ✔       | ✔       |         | ✔              |                 | ✔            |
-| `'rsa-pss'`                        | RSA PSS            | 1.2.840.113549.1.1.10   | ✔       | ✔       |         |                |                 |              |
-| `'rsa'`                            | RSA                | 1.2.840.113549.1.1.1    | ✔       | ✔       | ✔       |                |                 |              |
-| `'slh-dsa-sha2-128f'`[^openssl35]  | SLH-DSA-SHA2-128f  | 2.16.840.1.101.3.4.3.21 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-sha2-128s'`[^openssl35]  | SLH-DSA-SHA2-128s  | 2.16.840.1.101.3.4.3.20 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-sha2-192f'`[^openssl35]  | SLH-DSA-SHA2-192f  | 2.16.840.1.101.3.4.3.23 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-sha2-192s'`[^openssl35]  | SLH-DSA-SHA2-192s  | 2.16.840.1.101.3.4.3.22 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-sha2-256f'`[^openssl35]  | SLH-DSA-SHA2-256f  | 2.16.840.1.101.3.4.3.25 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-sha2-256s'`[^openssl35]  | SLH-DSA-SHA2-256s  | 2.16.840.1.101.3.4.3.24 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-shake-128f'`[^openssl35] | SLH-DSA-SHAKE-128f | 2.16.840.1.101.3.4.3.27 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-shake-128s'`[^openssl35] | SLH-DSA-SHAKE-128s | 2.16.840.1.101.3.4.3.26 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-shake-192f'`[^openssl35] | SLH-DSA-SHAKE-192f | 2.16.840.1.101.3.4.3.29 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-shake-192s'`[^openssl35] | SLH-DSA-SHAKE-192s | 2.16.840.1.101.3.4.3.28 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-shake-256f'`[^openssl35] | SLH-DSA-SHAKE-256f | 2.16.840.1.101.3.4.3.31 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'slh-dsa-shake-256s'`[^openssl35] | SLH-DSA-SHAKE-256s | 2.16.840.1.101.3.4.3.30 | ✔       | ✔       |         | ✔              | ✔               |              |
-| `'x25519'`                         | X25519             | 1.3.101.110             | ✔       | ✔       | ✔       | ✔              | ✔               |              |
-| `'x448'`                           | X448               | 1.3.101.111             | ✔       | ✔       | ✔       | ✔              | ✔               |              |
+**Formats:** `'pem'`, `'der'`
+
+* **`'dh'` (Diffie-Hellman)** — OID `1.2.840.113549.1.3.1`
+* **`'dsa'`** — OID `1.2.840.10040.4.1`
+* **`'rsa-pss'`** — OID `1.2.840.113549.1.1.10`
+
+**Formats:** `'pem'`, `'der'`, `'jwk'`
+
+* **`'rsa'`** — OID `1.2.840.113549.1.1.1`
+
+**Formats:** `'pem'`, `'der'`, `'jwk'`, `'raw-public'`, `'raw-private'`
+
+* **`'ec'` (Elliptic curve)** — OID `1.2.840.10045.2.1`
+* **`'ed25519'`** — OID `1.3.101.112`
+* **`'ed448'`** — OID `1.3.101.113`
+* **`'slh-dsa-sha2-128f'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.21`
+* **`'slh-dsa-sha2-128s'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.20`
+* **`'slh-dsa-sha2-192f'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.23`
+* **`'slh-dsa-sha2-192s'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.22`
+* **`'slh-dsa-sha2-256f'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.25`
+* **`'slh-dsa-sha2-256s'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.24`
+* **`'slh-dsa-shake-128f'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.27`
+* **`'slh-dsa-shake-128s'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.26`
+* **`'slh-dsa-shake-192f'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.29`
+* **`'slh-dsa-shake-192s'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.28`
+* **`'slh-dsa-shake-256f'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.31`
+* **`'slh-dsa-shake-256s'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.30`
+* **`'x25519'`** — OID `1.3.101.110`
+* **`'x448'`** — OID `1.3.101.111`
+
+**Formats:** `'pem'`, `'der'`, `'jwk'`, `'raw-public'`, `'raw-seed'`
+
+* **`'ml-dsa-44'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.17`
+* **`'ml-dsa-65'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.18`
+* **`'ml-dsa-87'`[^openssl35]** — OID `2.16.840.1.101.3.4.3.19`
+* **`'ml-kem-512'`[^openssl35]** — OID `2.16.840.1.101.3.4.4.1`
+* **`'ml-kem-768'`[^openssl35]** — OID `2.16.840.1.101.3.4.4.2`
+* **`'ml-kem-1024'`[^openssl35]** — OID `2.16.840.1.101.3.4.4.3`
 
 ### Key formats
 
@@ -840,6 +848,9 @@ added: v0.1.94
   If `outputEncoding` is specified, a string is
   returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned.
 
+If an output encoding was specified in a previous call to
+[`cipher.update()`][], `outputEncoding` must use the same encoding.
+
 Once the `cipher.final()` method has been called, the `Cipheriv` object can no
 longer be used to encrypt data. Attempts to call `cipher.final()` more than
 once will result in an error being thrown.
@@ -932,6 +943,8 @@ The `outputEncoding` specifies the output format of the enciphered
 data. If the `outputEncoding`
 is specified, a string using the specified encoding is returned. If no
 `outputEncoding` is provided, a [`Buffer`][] is returned.
+When `outputEncoding` is specified, it must use the same encoding as previous
+calls to `cipher.update()`.
 
 The `cipher.update()` method can be called multiple times with new data until
 [`cipher.final()`][] is called. Calling `cipher.update()` after
@@ -1150,6 +1163,9 @@ added: v0.1.94
   If `outputEncoding` is specified, a string is
   returned. If an `outputEncoding` is not provided, a [`Buffer`][] is returned.
 
+If an output encoding was specified in a previous call to
+[`decipher.update()`][], `outputEncoding` must use the same encoding.
+
 Once the `decipher.final()` method has been called, the `Decipheriv` object can
 no longer be used to decrypt data. Attempts to call `decipher.final()` more
 than once will result in an error being thrown.
@@ -1172,7 +1188,7 @@ changes:
 * `options` {Object} [`stream.transform` options][]
   * `plaintextLength` {number}
   * `encoding` {string} String encoding to use when `buffer` is a string.
-* Returns: {Decipheriv} The same Decipher for method chaining.
+* Returns: {Decipheriv} The same `Decipheriv` instance for method chaining.
 
 When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, and
 `chacha20-poly1305` are
@@ -1214,7 +1230,7 @@ changes:
 
 * `buffer` {string|Buffer|ArrayBuffer|TypedArray|DataView}
 * `encoding` {string} String encoding to use when `buffer` is a string.
-* Returns: {Decipheriv} The same Decipher for method chaining.
+* Returns: {Decipheriv} The same `Decipheriv` instance for method chaining.
 
 When using an authenticated encryption mode (`GCM`, `CCM`, `OCB`, and
 `chacha20-poly1305` are
@@ -1249,7 +1265,7 @@ added: v0.7.1
 -->
 
 * `autoPadding` {boolean} **Default:** `true`
-* Returns: {Decipheriv} The same Decipher for method chaining.
+* Returns: {Decipheriv} The same `Decipheriv` instance for method chaining.
 
 When data has been encrypted without standard block padding, calling
 `decipher.setAutoPadding(false)` will disable automatic padding to prevent
@@ -1286,6 +1302,8 @@ The `outputEncoding` specifies the output format of the enciphered
 data. If the `outputEncoding`
 is specified, a string using the specified encoding is returned. If no
 `outputEncoding` is provided, a [`Buffer`][] is returned.
+When `outputEncoding` is specified, it must use the same encoding as previous
+calls to `decipher.update()`.
 
 The `decipher.update()` method can be called multiple times with new data until
 [`decipher.final()`][] is called. Calling `decipher.update()` after
@@ -1393,8 +1411,10 @@ If `encoding` is provided a string is returned; otherwise a
 [`Buffer`][] is returned.
 
 This function is a thin wrapper around [`DH_generate_key()`][]. In particular,
-once a private key has been generated or set, calling this function only updates
-the public key but does not generate a new private key.
+once a private key has been generated or set, calling this function only
+recomputes the public key from the existing private key. Since the public key is
+determined by the private key, the result will be the same unless the private key
+has been changed via [`diffieHellman.setPrivateKey()`][].
 
 ### `diffieHellman.getGenerator([encoding])`
 
@@ -2393,6 +2413,10 @@ type, value, and parameters. This method is not
 <!-- YAML
 added: v11.6.0
 changes:
+  - version: v24.18.0
+    pr-url: https://github.com/nodejs/node/pull/62706
+    description: Added JWK format support for ML-KEM and SLH-DSA
+                 key types.
   - version: v24.15.0
     pr-url: https://github.com/nodejs/node/pull/62240
     description: Added support for `'raw-public'`, `'raw-private'`,
@@ -2630,7 +2654,7 @@ changes:
 
 <!--lint disable maximum-line-length remark-lint-->
 
-* `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
+* `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
   * `dsaEncoding` {string}
   * `padding` {integer}
   * `saltLength` {integer}
@@ -2643,8 +2667,10 @@ Calculates the signature on all the data passed through using either
 [`sign.update()`][] or [`sign.write()`][stream-writable-write].
 
 If `privateKey` is not a [`KeyObject`][], this function behaves as if
-`privateKey` had been passed to [`crypto.createPrivateKey()`][]. If it is an
-object, the following additional properties can be passed:
+`privateKey` had been passed to [`crypto.createPrivateKey()`][]. When
+`privateKey` is a string, `ArrayBuffer`, [`Buffer`][], `TypedArray`, or
+`DataView`, it must contain PEM-encoded key material. If it is an object, the
+following additional properties can be passed:
 
 * `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
   format of the generated signature. It can be one of the following:
@@ -2734,14 +2760,14 @@ encoding of `'utf8'` is enforced. If `data` is a [`Buffer`][], `TypedArray`, or
 
 This can be called many times with new data as it is streamed.
 
-### `verify.verify(object, signature[, signatureEncoding])`
+### `verify.verify(key, signature[, signatureEncoding])`
 
 <!-- YAML
 added: v0.1.92
 changes:
   - version: v15.0.0
     pr-url: https://github.com/nodejs/node/pull/35093
-    description: The object can also be an ArrayBuffer and CryptoKey.
+    description: The key can also be an ArrayBuffer and CryptoKey.
   - version:
      - v13.2.0
      - v12.16.0
@@ -2760,7 +2786,7 @@ changes:
 
 <!--lint disable maximum-line-length remark-lint-->
 
-* `object` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
+* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
   * `dsaEncoding` {string}
   * `padding` {integer}
   * `saltLength` {integer}
@@ -2771,11 +2797,13 @@ changes:
 
 <!--lint enable maximum-line-length remark-lint-->
 
-Verifies the provided data using the given `object` and `signature`.
+Verifies the provided data using the given `key` and `signature`.
 
-If `object` is not a [`KeyObject`][], this function behaves as if
-`object` had been passed to [`crypto.createPublicKey()`][]. If it is an
-object, the following additional properties can be passed:
+If `key` is not a [`KeyObject`][], this function behaves as if
+`key` had been passed to [`crypto.createPublicKey()`][]. When `key` is a string,
+`ArrayBuffer`, [`Buffer`][], `TypedArray`, or `DataView`, it must contain
+PEM-encoded key material. If it is an object, the following additional
+properties can be passed:
 
 * `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
   format of the signature. It can be one of the following:
@@ -3295,8 +3323,6 @@ Does not perform any other validation checks on the certificate.
 added: v24.7.0
 -->
 
-> Stability: 1.2 - Release candidate
-
 * `algorithm` {string} Variant of Argon2, one of `"argon2d"`, `"argon2i"` or `"argon2id"`.
 * `parameters` {Object}
   * `message` {string|ArrayBuffer|Buffer|TypedArray|DataView} REQUIRED, this is the password for password
@@ -3304,14 +3330,14 @@ added: v24.7.0
   * `nonce` {string|ArrayBuffer|Buffer|TypedArray|DataView} REQUIRED, must be at
     least 8 bytes long. This is the salt for password hashing applications of Argon2.
   * `parallelism` {number} REQUIRED, degree of parallelism determines how many computational chains (lanes)
-    can be run. Must be greater than 1 and less than `2**24-1`.
-  * `tagLength` {number} REQUIRED, the length of the key to generate. Must be greater than 4 and
-    less than `2**32-1`.
-  * `memory` {number} REQUIRED, memory cost in 1KiB blocks. Must be greater than
-    `8 * parallelism` and less than `2**32-1`. The actual number of blocks is rounded
+    can be run. Must be at least `1` and at most `2**24-1`.
+  * `tagLength` {number} REQUIRED, the length of the key to generate. Must be at least `4` and
+    at most `2**32-1`.
+  * `memory` {number} REQUIRED, memory cost in 1KiB blocks. Must be at least
+    `8 * parallelism` and at most `2**32-1`. The actual number of blocks is rounded
     down to the nearest multiple of `4 * parallelism`.
-  * `passes` {number} REQUIRED, number of passes (iterations). Must be greater than 1 and less
-    than `2**32-1`.
+  * `passes` {number} REQUIRED, number of passes (iterations). Must be at least `1` and at most
+    `2**32-1`.
   * `secret` {string|ArrayBuffer|Buffer|TypedArray|DataView|undefined} OPTIONAL, Random additional input,
     similar to the salt, that should **NOT** be stored with the derived key. This is known as pepper in
     password hashing applications. If used, must have a length not greater than `2**32-1` bytes.
@@ -3381,8 +3407,6 @@ argon2('argon2id', parameters, (err, derivedKey) => {
 added: v24.7.0
 -->
 
-> Stability: 1.2 - Release candidate
-
 * `algorithm` {string} Variant of Argon2, one of `"argon2d"`, `"argon2i"` or `"argon2id"`.
 * `parameters` {Object}
   * `message` {string|ArrayBuffer|Buffer|TypedArray|DataView} REQUIRED, this is the password for password
@@ -3390,14 +3414,14 @@ added: v24.7.0
   * `nonce` {string|ArrayBuffer|Buffer|TypedArray|DataView} REQUIRED, must be at
     least 8 bytes long. This is the salt for password hashing applications of Argon2.
   * `parallelism` {number} REQUIRED, degree of parallelism determines how many computational chains (lanes)
-    can be run. Must be greater than 1 and less than `2**24-1`.
-  * `tagLength` {number} REQUIRED, the length of the key to generate. Must be greater than 4 and
-    less than `2**32-1`.
-  * `memory` {number} REQUIRED, memory cost in 1KiB blocks. Must be greater than
-    `8 * parallelism` and less than `2**32-1`. The actual number of blocks is rounded
+    can be run. Must be at least 1 and at most `2**24-1`.
+  * `tagLength` {number} REQUIRED, the length of the key to generate. Must be at least `4` and
+    at most `2**32-1`.
+  * `memory` {number} REQUIRED, memory cost in 1KiB blocks. Must be at least
+    `8 * parallelism` and at most `2**32-1`. The actual number of blocks is rounded
     down to the nearest multiple of `4 * parallelism`.
-  * `passes` {number} REQUIRED, number of passes (iterations). Must be greater than 1 and less
-    than `2**32-1`.
+  * `passes` {number} REQUIRED, number of passes (iterations). Must be at least `1` and at most
+    `2**32-1`.
   * `secret` {string|ArrayBuffer|Buffer|TypedArray|DataView|undefined} OPTIONAL, Random additional input,
     similar to the salt, that should **NOT** be stored with the derived key. This is known as pepper in
     password hashing applications. If used, must have a length not greater than `2**32-1` bytes.
@@ -3759,6 +3783,8 @@ using the given `algorithm`. Optional `options` argument controls stream
 behavior. For XOF hash functions such as `'shake256'`, the `outputLength` option
 can be used to specify the desired output length in bytes.
 
+When the data is small (< 5MB) and readily available, [`crypto.hash()`][] is usually faster.
+
 The `algorithm` is dependent on the available algorithms supported by the
 version of OpenSSL on the platform. Examples are `'sha256'`, `'sha512'`, etc.
 On recent releases of OpenSSL, `openssl list -digest-algorithms` will
@@ -3913,6 +3939,14 @@ input.on('readable', () => {
 <!-- YAML
 added: v11.6.0
 changes:
+  - version: v24.21.0
+    pr-url: https://github.com/nodejs/node/pull/63949
+    description: The key can also be a URL referencing an object for an
+                 OpenSSL STORE loader. The `properties` option was added.
+  - version: v24.18.0
+    pr-url: https://github.com/nodejs/node/pull/62706
+    description: Added JWK format support for ML-KEM and SLH-DSA
+                 key types.
   - version: v24.15.0
     pr-url: https://github.com/nodejs/node/pull/62240
     description: Added support for `'raw-private'` and `'raw-seed'`
@@ -3931,14 +3965,19 @@ changes:
 
 <!--lint disable maximum-line-length remark-lint-->
 
-* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView}
-  * `key` {string|ArrayBuffer|Buffer|TypedArray|DataView|Object} The key
-    material, either in PEM, DER, JWK, or raw format.
+* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|URL}
+  * `key` {string|ArrayBuffer|Buffer|TypedArray|DataView|Object|URL} The key
+    material, either in PEM, DER, JWK, or raw format, or a {URL} referencing an
+    object for an OpenSSL STORE loader.
   * `format` {string} Must be `'pem'`, `'der'`, `'jwk'`, `'raw-private'`,
     or `'raw-seed'`. **Default:** `'pem'`.
   * `type` {string} Must be `'pkcs1'`, `'pkcs8'` or `'sec1'`. This option is
     required only if the `format` is `'der'` and ignored otherwise.
-  * `passphrase` {string | Buffer} The passphrase to use for decryption.
+  * `passphrase` {string | Buffer} The passphrase to use for decryption. When
+    `key` is a {URL}, this is the optional PIN/passphrase forwarded to the
+    STORE loader.
+  * `properties` {string} The optional OpenSSL property query used when
+    fetching the STORE loader for a {URL} key.
   * `encoding` {string} The string encoding to use when `key` is a string.
   * `asymmetricKeyType` {string} Required when `format` is `'raw-private'`
     or `'raw-seed'` and ignored otherwise.
@@ -3956,11 +3995,55 @@ must be an object with the properties described above.
 If the private key is encrypted, a `passphrase` must be specified. The length
 of the passphrase is limited to 1024 bytes.
 
+#### Private keys from OpenSSL STORE loaders
+
+> Stability: 1.1 - Active development
+
+If `key` is a {URL} (or an object whose `key` is a {URL}), the private key is
+loaded through an OpenSSL STORE loader. The URL is passed to OpenSSL as a URI,
+for example a `file:` URI or a provider-backed scheme such as `pkcs11:`. When
+the [Permission Model][] is enabled, [`--allow-openssl-store`][] is required.
+
+> **Warning**: A URI scheme does not pin an OpenSSL STORE loader or prove where
+> the returned key came from. Node.js forwards the URI to OpenSSL, which chooses
+> loaders according to its version and configuration. For example, OpenSSL may
+> offer an opaque URI such as `pkcs11:object=...` (one without `//` after the
+> scheme) to its `file` loader before trying the `pkcs11` loader. If the complete
+> URI is a valid local path and that file exists, it may be loaded instead.
+> Node.js does not verify which loader supplied the key. Do not rely on a
+> provider-specific URI scheme as proof that a key came from that provider or
+> from a hardware device.
+
+Configured OpenSSL STORE loaders have broad authority and may access files,
+devices, tokens, or the network. Access performed by a loader is not constrained
+by the `fs.read` or `fs.write` permission scopes.
+
+When a {URL} is used, `format`, `type`, `asymmetricKeyType`, and `namedCurve`
+are ignored even when those options would otherwise depend on each other, such
+as `type` with `format: 'der'` or `namedCurve` with
+`asymmetricKeyType: 'ec'`. The input is passed to the STORE loader as a URI,
+not handled as PEM, DER, JWK, or raw key material. `passphrase` is still used as
+the optional PIN/passphrase passed to the loader, and `encoding` applies if that
+`passphrase` is a string.
+
+Use `passphrase` instead of embedding credentials in the URI passed to the
+STORE loader. Node.js redacts the URI from its own permission-denial resource
+and diagnostics. Errors reported by OpenSSL or a provider after loading begins
+may include the URI.
+
+When `properties` is specified with a {URL} key, it is passed to OpenSSL as the
+property query for selecting the STORE loader. It is not appended to the URL and
+is distinct from provider-specific URI parameters.
+
 ### `crypto.createPublicKey(key)`
 
 <!-- YAML
 added: v11.6.0
 changes:
+  - version: v24.18.0
+    pr-url: https://github.com/nodejs/node/pull/62706
+    description: Added JWK format support for ML-KEM and SLH-DSA
+                 key types.
   - version: v24.15.0
     pr-url: https://github.com/nodejs/node/pull/62240
     description: Added support for `'raw-public'` format.
@@ -4016,6 +4099,10 @@ returned `KeyObject` will be `'public'` and that the private key cannot be
 extracted from the returned `KeyObject`. Similarly, if a `KeyObject` with type
 `'private'` is given, a new `KeyObject` with type `'public'` will be returned
 and it will be impossible to extract the private key from the returned object.
+
+A store-backed private key can be used as a public key by first loading it with
+[`crypto.createPrivateKey()`][]; a {URL} cannot be passed to
+`crypto.createPublicKey()` directly.
 
 ### `crypto.createSecretKey(key[, encoding])`
 
@@ -4088,9 +4175,7 @@ algorithm names.
 added: v24.7.0
 -->
 
-> Stability: 1.2 - Release candidate
-
-* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject} Private Key
+* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|URL} Private Key
 * `ciphertext` {ArrayBuffer|Buffer|TypedArray|DataView}
 * `callback` {Function}
   * `err` {Error}
@@ -4123,22 +4208,31 @@ added:
  - v13.9.0
  - v12.17.0
 changes:
+  - version: v24.18.0
+    pr-url: https://github.com/nodejs/node/pull/62527
+    description: Accept key data in addition to KeyObject instances.
   - version: v23.11.0
     pr-url: https://github.com/nodejs/node/pull/57274
     description: Optional callback argument added.
 -->
 
 * `options` {Object}
-  * `privateKey` {KeyObject}
-  * `publicKey` {KeyObject}
+  * `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|URL}
+  * `publicKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject}
 * `callback` {Function}
   * `err` {Error}
   * `secret` {Buffer}
 * Returns: {Buffer} if the `callback` function is not provided.
 
 Computes the Diffie-Hellman shared secret based on a `privateKey` and a `publicKey`.
-Both keys must have the same `asymmetricKeyType` and must support either the DH or
+Both keys must represent the same asymmetric key type and must support either the DH or
 ECDH operation.
+
+If `options.privateKey` is not a [`KeyObject`][], this function behaves as if
+`options.privateKey` had been passed to [`crypto.createPrivateKey()`][].
+
+If `options.publicKey` is not a [`KeyObject`][], this function behaves as if
+`options.publicKey` had been passed to [`crypto.createPublicKey()`][].
 
 If the `callback` function is provided this function uses libuv's threadpool.
 
@@ -4147,8 +4241,6 @@ If the `callback` function is provided this function uses libuv's threadpool.
 <!-- YAML
 added: v24.7.0
 -->
-
-> Stability: 1.2 - Release candidate
 
 * `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject} Public Key
 * `callback` {Function}
@@ -4188,11 +4280,8 @@ deprecated: v10.0.0
 
 > Stability: 0 - Deprecated
 
-Property for checking and controlling whether a FIPS compliant crypto provider
-is currently in use. Setting to true requires a FIPS build of Node.js.
-
-This property is deprecated. Please use `crypto.setFips()` and
-`crypto.getFips()` instead.
+Deprecated property for checking and controlling [FIPS mode][]. Use
+[`crypto.getFips()`][] and [`crypto.setFips()`][] instead.
 
 ### `crypto.generateKey(type, options, callback)`
 
@@ -4783,9 +4872,14 @@ console.log(aliceSecret === bobSecret);
 added: v10.0.0
 -->
 
-* Returns: {number} `1` if and only if a FIPS compliant crypto provider is
-  currently in use, `0` otherwise. A future semver-major release may change
-  the return type of this API to a {boolean}.
+* Returns: {number} `1` if FIPS mode is enabled, `0` otherwise. A future
+  semver-major release may change the return type of this API to a {boolean}.
+
+With OpenSSL 3, this reports whether the default property query includes
+`fips=yes`. It does not establish that a FIPS provider is loaded or validated.
+It can return `1` even when a requested cryptographic implementation cannot be
+fetched because no loaded provider supplies a match for `fips=yes`. See [FIPS
+mode][].
 
 ### `crypto.getHashes()`
 
@@ -4935,7 +5029,7 @@ HKDF is a simple key derivation function defined in RFC 5869. The given `ikm`,
 `salt` and `info` are used with the `digest` to derive a key of `keylen` bytes.
 
 The supplied `callback` function is called with two arguments: `err` and
-`derivedKey`. If an errors occurs while deriving the key, `err` will be set;
+`derivedKey`. If an error occurs while deriving the key, `err` will be set;
 otherwise `err` will be `null`. The successfully generated `derivedKey` will
 be passed to the callback as an {ArrayBuffer}. An error will be thrown if any
 of the input arguments specify invalid values or types.
@@ -5113,6 +5207,10 @@ negative performance implications for some applications; see the
 <!-- YAML
 added: v0.9.3
 changes:
+  - version: v15.0.0
+    pr-url: https://github.com/nodejs/node/pull/35093
+    description: The password and salt arguments can also be ArrayBuffer
+                 instances.
   - version: v14.0.0
     pr-url: https://github.com/nodejs/node/pull/30578
     description: The `iterations` parameter is now restricted to positive
@@ -5127,8 +5225,8 @@ changes:
                  from `binary` to `utf8`.
 -->
 
-* `password` {string|Buffer|TypedArray|DataView}
-* `salt` {string|Buffer|TypedArray|DataView}
+* `password` {string|ArrayBuffer|Buffer|TypedArray|DataView}
+* `salt` {string|ArrayBuffer|Buffer|TypedArray|DataView}
 * `iterations` {number}
 * `keylen` {number}
 * `digest` {string}
@@ -5204,7 +5302,7 @@ changes:
 
 <!--lint disable maximum-line-length remark-lint-->
 
-* `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
+* `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
   * `oaepHash` {string} The hash function to use for OAEP padding and MGF1.
     **Default:** `'sha1'`
   * `oaepLabel` {string|ArrayBuffer|Buffer|TypedArray|DataView} The label to
@@ -5249,9 +5347,10 @@ changes:
 
 <!--lint disable maximum-line-length remark-lint-->
 
-* `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
-  * `key` {string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
-    A PEM encoded private key.
+* `privateKey` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
+  * `key` {string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
+    The private key material, a {KeyObject}, {CryptoKey}, or a {URL}
+    referencing an object for an OpenSSL STORE loader.
   * `passphrase` {string|ArrayBuffer|Buffer|TypedArray|DataView} An optional
     passphrase for the private key.
   * `padding` {crypto.constants} An optional padding value defined in
@@ -5303,7 +5402,7 @@ changes:
 
 <!--lint enable maximum-line-length remark-lint-->
 
-Decrypts `buffer` with `key`.`buffer` was previously encrypted using
+Decrypts `buffer` with `key`. `buffer` was previously encrypted using
 the corresponding private key, for example using [`crypto.privateEncrypt()`][].
 
 If `key` is not a [`KeyObject`][], this function behaves as if
@@ -5485,9 +5584,12 @@ changes:
 
 * `buffer` {ArrayBuffer|Buffer|TypedArray|DataView} Must be supplied. The
   size of the provided `buffer` must not be larger than `2**31 - 1`.
-* `offset` {number} **Default:** `0`
-* `size` {number} **Default:** `buffer.length - offset`. The `size` must
-  not be larger than `2**31 - 1`.
+* `offset` {number} The start position, in elements for a `TypedArray` and in
+  bytes for an `ArrayBuffer` or `DataView`. **Default:** `0`
+* `size` {number} The amount to fill, in the same units as `offset`.
+  **Default:** `buffer.length - offset` for a `TypedArray`, or
+  `buffer.byteLength - offset` for an `ArrayBuffer` or `DataView`. The `size`
+  must not be larger than `2**31 - 1`.
 * `callback` {Function} `function(err, buf) {}`.
 
 This function is similar to [`crypto.randomBytes()`][] but requires the first
@@ -5622,9 +5724,12 @@ changes:
 
 * `buffer` {ArrayBuffer|Buffer|TypedArray|DataView} Must be supplied. The
   size of the provided `buffer` must not be larger than `2**31 - 1`.
-* `offset` {number} **Default:** `0`
-* `size` {number} **Default:** `buffer.length - offset`. The `size` must
-  not be larger than `2**31 - 1`.
+* `offset` {number} The start position, in elements for a `TypedArray` and in
+  bytes for an `ArrayBuffer` or `DataView`. **Default:** `0`
+* `size` {number} The amount to fill, in the same units as `offset`.
+  **Default:** `buffer.length - offset` for a `TypedArray`, or
+  `buffer.byteLength - offset` for an `ArrayBuffer` or `DataView`. The `size`
+  must not be larger than `2**31 - 1`.
 * Returns: {ArrayBuffer|Buffer|TypedArray|DataView} The object passed as
   `buffer` argument.
 
@@ -5804,6 +5909,27 @@ added:
 
 Generates a random [RFC 4122][] version 4 UUID. The UUID is generated using a
 cryptographic pseudorandom number generator.
+
+### `crypto.randomUUIDv7([options])`
+
+<!-- YAML
+added: v24.16.0
+-->
+
+* `options` {Object}
+  * `disableEntropyCache` {boolean} By default, to improve performance,
+    Node.js generates and caches enough
+    random data to generate up to 128 random UUIDs. To generate a UUID
+    without using the cache, set `disableEntropyCache` to `true`.
+    **Default:** `false`.
+* Returns: {string}
+
+Generates a random [RFC 9562][] version 7 UUID. The UUID contains a millisecond
+precision Unix timestamp in the most significant 48 bits, followed by
+cryptographically secure random bits for the remaining fields, making it
+suitable for use as a database key with time-based sorting. The embedded
+timestamp relies on a non-monotonic clock and is not guaranteed to be strictly
+increasing.
 
 ### `crypto.scrypt(password, salt, keylen[, options], callback)`
 
@@ -6029,16 +6155,42 @@ is a bit field taking one of or a mix of the following flags (defined in
 added: v10.0.0
 -->
 
-* `bool` {boolean} `true` to enable FIPS mode.
+* `bool` {boolean} `true` to enable FIPS mode, `false` to disable it.
 
-Enables the FIPS compliant crypto provider in a FIPS-enabled Node.js build.
-Throws an error if FIPS mode is not available.
+Changes [FIPS mode][]. With OpenSSL 3, this only adds or removes `fips=yes` in
+the default property query. It does not install, load, initialize, or validate
+a FIPS provider. For a usable FIPS configuration, install the provider and
+configure OpenSSL to load it when Node.js starts, as described in [FIPS
+mode][].
+
+If no loaded provider supplies a requested cryptographic implementation
+matching `fips=yes`, the call can still succeed and `crypto.getFips()` can still
+return `1`, but fetching that implementation fails. Affected `node:crypto`
+operations typically fail with `ERR_OSSL_EVP_UNSUPPORTED`. Operations that do
+not require a new fetch, including those using previously fetched
+implementations or initialized operation contexts, may still succeed. Call this
+method during application initialization, before application code uses other
+OpenSSL-backed APIs.
+
+This method only affects subsequent algorithm fetches. Node.js initializes some
+OpenSSL state before application code runs. When the property query must be
+active from process startup, set `default_properties = fips=yes` in the OpenSSL
+configuration or use [`--enable-fips`][] or [`--force-fips`][]. The command-line
+flags additionally require a configured provider named `fips` to initialize and
+pass its self-test; Node.js fails to start otherwise.
+
+Throws an error if OpenSSL cannot change the state. FIPS mode cannot be
+disabled when Node.js was started with `--force-fips`. With OpenSSL 1.1.1,
+enabling FIPS mode requires a FIPS-capable OpenSSL build.
 
 ### `crypto.sign(algorithm, data, key[, callback])`
 
 <!-- YAML
 added: v12.0.0
 changes:
+  - version: v24.16.0
+    pr-url: https://github.com/nodejs/node/pull/62474
+    description: Add support for Ed25519 context parameter.
   - version: v24.8.0
     pr-url: https://github.com/nodejs/node/pull/59570
     description: Add support for ML-DSA, Ed448, and SLH-DSA context parameter.
@@ -6066,8 +6218,8 @@ changes:
 <!--lint disable maximum-line-length remark-lint-->
 
 * `algorithm` {string | null | undefined}
-* `data` {ArrayBuffer|Buffer|TypedArray|DataView}
-* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
+* `data` {ArrayBuffer|Buffer|SharedArrayBuffer|TypedArray|DataView|string}
+* `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey|URL}
 * `callback` {Function}
   * `err` {Error}
   * `signature` {Buffer}
@@ -6083,8 +6235,10 @@ dependent upon the key type.
 ML-DSA.
 
 If `key` is not a [`KeyObject`][], this function behaves as if `key` had been
-passed to [`crypto.createPrivateKey()`][]. If it is an object, the following
-additional properties can be passed:
+passed to [`crypto.createPrivateKey()`][]. When `key` is a string, `ArrayBuffer`,
+[`Buffer`][], `TypedArray`, or `DataView`, it must contain PEM-encoded key
+material. If it is an object, the following additional properties can be
+passed:
 
 * `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
   format of the generated signature. It can be one of the following:
@@ -6102,9 +6256,10 @@ additional properties can be passed:
   `crypto.constants.RSA_PSS_SALTLEN_DIGEST` sets the salt length to the digest
   size, `crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN` (default) sets it to the
   maximum permissible value.
-* `context` {ArrayBuffer|Buffer|TypedArray|DataView} For Ed448, ML-DSA, and SLH-DSA,
-  this option specifies the optional context to differentiate signatures generated
-  for different purposes with the same key.
+* `context` {ArrayBuffer|Buffer|TypedArray|DataView} For Ed25519[^openssl32]
+  (using Ed25519ctx from [RFC 8032][]), Ed448, ML-DSA, and SLH-DSA,
+  this option specifies the optional context to differentiate signatures
+  generated for different purposes with the same key.
 
 If the `callback` function is provided this function uses libuv's threadpool.
 
@@ -6164,6 +6319,9 @@ not introduce timing vulnerabilities.
 <!-- YAML
 added: v12.0.0
 changes:
+  - version: v24.16.0
+    pr-url: https://github.com/nodejs/node/pull/62474
+    description: Add support for Ed25519 context parameter.
   - version: v24.8.0
     pr-url: https://github.com/nodejs/node/pull/59570
     description: Add support for ML-DSA, Ed448, and SLH-DSA context parameter.
@@ -6194,9 +6352,9 @@ changes:
 <!--lint disable maximum-line-length remark-lint-->
 
 * `algorithm` {string|null|undefined}
-* `data` {ArrayBuffer| Buffer|TypedArray|DataView}
+* `data` {ArrayBuffer|Buffer|SharedArrayBuffer|TypedArray|DataView|string}
 * `key` {Object|string|ArrayBuffer|Buffer|TypedArray|DataView|KeyObject|CryptoKey}
-* `signature` {ArrayBuffer|Buffer|TypedArray|DataView}
+* `signature` {ArrayBuffer|Buffer|SharedArrayBuffer|TypedArray|DataView}
 * `callback` {Function}
   * `err` {Error}
   * `result` {boolean}
@@ -6214,8 +6372,10 @@ key type.
 ML-DSA.
 
 If `key` is not a [`KeyObject`][], this function behaves as if `key` had been
-passed to [`crypto.createPublicKey()`][]. If it is an object, the following
-additional properties can be passed:
+passed to [`crypto.createPublicKey()`][]. When `key` is a string, `ArrayBuffer`,
+[`Buffer`][], `TypedArray`, or `DataView`, it must contain PEM-encoded key
+material. If it is an object, the following additional properties can be
+passed:
 
 * `dsaEncoding` {string} For DSA and ECDSA, this option specifies the
   format of the signature. It can be one of the following:
@@ -6233,9 +6393,10 @@ additional properties can be passed:
   `crypto.constants.RSA_PSS_SALTLEN_DIGEST` sets the salt length to the digest
   size, `crypto.constants.RSA_PSS_SALTLEN_MAX_SIGN` (default) sets it to the
   maximum permissible value.
-* `context` {ArrayBuffer|Buffer|TypedArray|DataView} For Ed448, ML-DSA, and SLH-DSA,
-  this option specifies the optional context to differentiate signatures generated
-  for different purposes with the same key.
+* `context` {ArrayBuffer|Buffer|TypedArray|DataView} For Ed25519[^openssl32]
+  (using Ed25519ctx from [RFC 8032][]), Ed448, ML-DSA, and SLH-DSA,
+  this option specifies the optional context to differentiate signatures
+  generated for different purposes with the same key.
 
 The `signature` argument is the previously calculated signature for the `data`.
 
@@ -6455,64 +6616,32 @@ console.log(receivedPlaintext);
 
 ### FIPS mode
 
-When using OpenSSL 3, Node.js supports FIPS 140-2 when used with an appropriate
-OpenSSL 3 provider, such as the [FIPS provider from OpenSSL 3][] which can be
-installed by following the instructions in [OpenSSL's FIPS README file][].
+Node.js exposes the FIPS support provided by the linked OpenSSL library. Node.js
+is not itself FIPS validated. Validation belongs to a specific OpenSSL module or
+provider and only applies when it is deployed according to its security policy.
+Vendor-provided Node.js or OpenSSL builds can require a different configuration;
+follow the vendor's documentation for those builds.
 
-For FIPS support in Node.js you will need:
+With OpenSSL 1.1.1, Node.js must be built against a FIPS-capable OpenSSL library.
+
+With OpenSSL 3, FIPS support uses the provider model described in the
+[OpenSSL FIPS module guide][]. Using FIPS-approved implementations requires:
 
 * A correctly installed OpenSSL 3 FIPS provider.
 * An OpenSSL 3 [FIPS module configuration file][].
-* An OpenSSL 3 configuration file that references the FIPS module
-  configuration file.
+* The FIPS provider to be loaded into the OpenSSL library context used by
+  Node.js, normally by activating it in an OpenSSL configuration file when
+  Node.js starts.
+* The default property query to include `fips=yes` when cryptographic
+  implementations are fetched. This can be set from process startup by the
+  OpenSSL configuration, [`--enable-fips`][], or [`--force-fips`][], or for
+  subsequent fetches by `crypto.setFips(true)`.
 
-Node.js will need to be configured with an OpenSSL configuration file that
-points to the FIPS provider. An example configuration file looks like this:
-
-```text
-nodejs_conf = nodejs_init
-
-.include /<absolute path>/fipsmodule.cnf
-
-[nodejs_init]
-providers = provider_sect
-
-[provider_sect]
-default = default_sect
-# The fips section name should match the section name inside the
-# included fipsmodule.cnf.
-fips = fips_sect
-
-[default_sect]
-activate = 1
-```
-
-where `fipsmodule.cnf` is the FIPS module configuration file generated from the
-FIPS provider installation step:
-
-```bash
-openssl fipsinstall
-```
-
-Set the `OPENSSL_CONF` environment variable to point to
-your configuration file and `OPENSSL_MODULES` to the location of the FIPS
-provider dynamic library. e.g.
-
-```bash
-export OPENSSL_CONF=/<path to configuration file>/nodejs.cnf
-export OPENSSL_MODULES=/<path to openssl lib>/ossl-modules
-```
-
-FIPS mode can then be enabled in Node.js either by:
-
-* Starting Node.js with `--enable-fips` or `--force-fips` command line flags.
-* Programmatically calling `crypto.setFips(true)`.
-
-Optionally FIPS mode can be enabled in Node.js via the OpenSSL configuration
-file. e.g.
+An example OpenSSL 3 configuration file looks like this:
 
 ```text
 nodejs_conf = nodejs_init
+config_diagnostics = 1
 
 .include /<absolute path>/fipsmodule.cnf
 
@@ -6521,17 +6650,86 @@ providers = provider_sect
 alg_section = algorithm_sect
 
 [provider_sect]
-default = default_sect
 # The fips section name should match the section name inside the
 # included fipsmodule.cnf.
 fips = fips_sect
+base = base_sect
 
-[default_sect]
+[base_sect]
 activate = 1
 
 [algorithm_sect]
 default_properties = fips=yes
 ```
+
+The `fipsmodule.cnf` file is generated as part of the FIPS provider installation
+and contains module integrity and self-test information. The exact command and
+arguments are installation-specific; see [OpenSSL FIPS configuration][] and the
+[OpenSSL FIPS module guide][]. The installation uses `openssl fipsinstall`.
+
+The example activates the provider and enables the `fips=yes` property query
+when Node.js starts. To activate the provider at startup but enable the property
+query later with `crypto.setFips(true)`, omit `alg_section = algorithm_sect` and
+the `[algorithm_sect]` block. The provider must still be loaded; when using this
+startup configuration, keep its activation enabled. `crypto.setFips(true)`
+should be called before application code uses other OpenSSL-backed APIs. It is
+not equivalent to enabling the property query from process startup because
+Node.js initializes some OpenSSL state before application code runs. Use the
+example as written, [`--enable-fips`][], or [`--force-fips`][] when the property
+query must be active from process startup.
+
+`config_diagnostics` causes configuration errors to prevent startup instead of
+being ignored. The `base` provider supplies non-cryptographic supporting
+algorithms, such as encoders and decoders, that are commonly needed alongside
+the FIPS provider. `default_properties = fips=yes` restricts OpenSSL's default
+algorithm selection to implementations that match `fips=yes`.
+
+Set `OPENSSL_CONF` to the OpenSSL configuration file. For a dynamically loaded
+provider, `OPENSSL_MODULES` can set the directory containing the provider module.
+For example:
+
+```bash
+export OPENSSL_CONF=/<path to configuration file>/nodejs.cnf
+export OPENSSL_MODULES=/<path to openssl lib>/ossl-modules
+```
+
+The [`--openssl-config`][] command-line option selects the configuration file and
+takes precedence over `OPENSSL_CONF`. If neither is set, OpenSSL's default
+configuration file is used.
+
+By default, Node.js reads the `nodejs_conf` section instead of OpenSSL's usual
+`openssl_conf` section. Use [`--openssl-shared-config`][] to read `openssl_conf`,
+or build Node.js with `./configure --openssl-conf-name=<name>` to change the
+default section name.
+
+On OpenSSL 3, the configuration above enables the `fips=yes` property query at
+startup. The following controls are also available:
+
+* [`--enable-fips`][] and [`--force-fips`][] enable the property query and
+  additionally require the configured provider named `fips` to initialize and
+  pass its self-test. Node.js exits if that check fails. `--force-fips` also
+  prevents FIPS mode from being disabled from script code.
+* [`crypto.setFips()`][] changes the FIPS/property-query state. On OpenSSL 3, it
+  does not install, load, initialize, or validate a provider. Implementations
+  fetched before the call are not changed.
+* [`crypto.getFips()`][] reports the FIPS/property-query state. On OpenSSL 3, a
+  return value of `1` does not prove that a FIPS provider is loaded or validated.
+
+With OpenSSL 1.1.1, these controls use the library's FIPS mode support and
+require a FIPS-capable OpenSSL build.
+
+Only algorithms available under the active FIPS settings can be used. With
+OpenSSL 3, if no loaded provider supplies a requested cryptographic
+implementation matching `fips=yes`, fetching it fails, typically with
+`ERR_OSSL_EVP_UNSUPPORTED`. The same error can occur for algorithms that
+Node.js supports when FIPS mode is disabled but that are unavailable under the
+active FIPS settings.
+
+OpenSSL documents that the same FIPS provider cannot be used by multiple copies
+of `libcrypto` in one process. This can affect native addons that load another
+copy of `libcrypto`; OpenSSL's documented workaround is to use a separate copy
+of the provider for each `libcrypto` instance. See [OpenSSL FIPS provider
+limitations][].
 
 ## Crypto constants
 
@@ -6586,7 +6784,7 @@ See the [list of SSL OP Flags][] for details.
   </tr>
   <tr>
     <td><code>SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS</code></td>
-    <td>Instructs OpenSSL to disable a SSL 3.0/TLS 1.0 vulnerability
+    <td>Instructs OpenSSL to disable an SSL 3.0/TLS 1.0 vulnerability
     workaround added in OpenSSL 0.9.6d.</td>
   </tr>
   <tr>
@@ -6815,16 +7013,19 @@ See the [list of SSL OP Flags][] for details.
 [Caveats]: #support-for-weak-or-compromised-algorithms
 [Crypto constants]: #crypto-constants
 [DEP0182]: deprecations.md#dep0182-short-gcm-authentication-tags-without-explicit-authtaglength
-[FIPS module configuration file]: https://www.openssl.org/docs/man3.0/man5/fips_config.html
-[FIPS provider from OpenSSL 3]: https://www.openssl.org/docs/man3.0/man7/crypto.html#FIPS-provider
+[FIPS mode]: #fips-mode
+[FIPS module configuration file]: https://docs.openssl.org/3.0/man5/fips_config/
 [HTML 5.2]: https://www.w3.org/TR/html52/changes.html#features-removed
 [JWK]: https://tools.ietf.org/html/rfc7517
 [Key usages]: webcrypto.md#cryptokeyusages
 [NIST SP 800-131A]: https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-131Ar2.pdf
 [NIST SP 800-132]: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf
 [NIST SP 800-38D]: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf
-[OpenSSL's FIPS README file]: https://github.com/openssl/openssl/blob/openssl-3.0/README-FIPS.md
+[OpenSSL FIPS configuration]: https://docs.openssl.org/3.0/man5/fips_config/
+[OpenSSL FIPS module guide]: https://docs.openssl.org/master/man7/fips_module/
+[OpenSSL FIPS provider limitations]: https://docs.openssl.org/3.6/man7/OSSL_PROVIDER-FIPS/
 [OpenSSL's SPKAC implementation]: https://www.openssl.org/docs/man3.0/man1/openssl-spkac.html
+[Permission Model]: permissions.md#permission-model
 [RFC 1421]: https://www.rfc-editor.org/rfc/rfc1421.txt
 [RFC 2409]: https://www.rfc-editor.org/rfc/rfc2409.txt
 [RFC 2818]: https://www.rfc-editor.org/rfc/rfc2818.txt
@@ -6835,7 +7036,14 @@ See the [list of SSL OP Flags][] for details.
 [RFC 5208]: https://www.rfc-editor.org/rfc/rfc5208.txt
 [RFC 5280]: https://www.rfc-editor.org/rfc/rfc5280.txt
 [RFC 7517]: https://www.rfc-editor.org/rfc/rfc7517.txt
+[RFC 8032]: https://www.rfc-editor.org/rfc/rfc8032.txt
+[RFC 9562]: https://www.rfc-editor.org/rfc/rfc9562.txt
 [Web Crypto API documentation]: webcrypto.md
+[`--allow-openssl-store`]: cli.md#--allow-openssl-store
+[`--enable-fips`]: cli.md#--enable-fips
+[`--force-fips`]: cli.md#--force-fips
+[`--openssl-config`]: cli.md#--openssl-configfile
+[`--openssl-shared-config`]: cli.md#--openssl-shared-config
 [`BN_is_prime_ex`]: https://www.openssl.org/docs/man1.1.1/man3/BN_is_prime_ex.html
 [`Buffer`]: buffer.md
 [`DH_generate_key()`]: https://www.openssl.org/docs/man3.0/man3/DH_generate_key.html
@@ -6862,13 +7070,16 @@ See the [list of SSL OP Flags][] for details.
 [`crypto.generateKeyPair()`]: #cryptogeneratekeypairtype-options-callback
 [`crypto.getCurves()`]: #cryptogetcurves
 [`crypto.getDiffieHellman()`]: #cryptogetdiffiehellmangroupname
+[`crypto.getFips()`]: #cryptogetfips
 [`crypto.getHashes()`]: #cryptogethashes
+[`crypto.hash()`]: #cryptohashalgorithm-data-options
 [`crypto.privateDecrypt()`]: #cryptoprivatedecryptprivatekey-buffer
 [`crypto.privateEncrypt()`]: #cryptoprivateencryptprivatekey-buffer
 [`crypto.publicDecrypt()`]: #cryptopublicdecryptkey-buffer
 [`crypto.publicEncrypt()`]: #cryptopublicencryptkey-buffer
 [`crypto.randomBytes()`]: #cryptorandombytessize-callback
 [`crypto.randomFill()`]: #cryptorandomfillbuffer-offset-size-callback
+[`crypto.setFips()`]: #cryptosetfipsbool
 [`crypto.sign()`]: #cryptosignalgorithm-data-key-callback
 [`crypto.verify()`]: #cryptoverifyalgorithm-data-key-signature-callback
 [`crypto.webcrypto.getRandomValues()`]: webcrypto.md#cryptogetrandomvaluestypedarray
@@ -6876,6 +7087,7 @@ See the [list of SSL OP Flags][] for details.
 [`decipher.final()`]: #decipherfinaloutputencoding
 [`decipher.update()`]: #decipherupdatedata-inputencoding-outputencoding
 [`diffieHellman.generateKeys()`]: #diffiehellmangeneratekeysencoding
+[`diffieHellman.setPrivateKey()`]: #diffiehellmansetprivatekeyprivatekey-encoding
 [`diffieHellman.setPublicKey()`]: #diffiehellmansetpublickeypublickey-encoding
 [`ecdh.generateKeys()`]: #ecdhgeneratekeysencoding-format
 [`ecdh.setPrivateKey()`]: #ecdhsetprivatekeyprivatekey-encoding
@@ -6892,7 +7104,7 @@ See the [list of SSL OP Flags][] for details.
 [`stream.transform` options]: stream.md#new-streamtransformoptions
 [`util.promisify()`]: util.md#utilpromisifyoriginal
 [`verify.update()`]: #verifyupdatedata-inputencoding
-[`verify.verify()`]: #verifyverifyobject-signature-signatureencoding
+[`verify.verify()`]: #verifyverifykey-signature-signatureencoding
 [`x509.fingerprint256`]: #x509fingerprint256
 [`x509.verify(publicKey)`]: #x509verifypublickey
 [argon2]: https://www.rfc-editor.org/rfc/rfc9106.html

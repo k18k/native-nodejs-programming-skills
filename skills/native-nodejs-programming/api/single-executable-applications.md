@@ -134,7 +134,7 @@ tool, [postject][]:
    * On macOS:
 
    ```bash
-   codesign --sign - hello
+   codesign --sign - sea
    ```
 
    * On Windows (optional):
@@ -143,7 +143,7 @@ tool, [postject][]:
    binary would still be runnable.
 
    ```powershell
-   signtool sign /fd SHA256 hello.exe
+   signtool sign /fd SHA256 sea.exe
    ```
 
 8. Run the binary:
@@ -151,14 +151,14 @@ tool, [postject][]:
    * On systems other than Windows
 
    ```console
-   $ ./hello world
+   $ ./sea world
    Hello, world!
    ```
 
    * On Windows
 
    ```console
-   $ .\hello.exe world
+   $ .\sea.exe world
    Hello, world!
    ```
 
@@ -536,7 +536,8 @@ Single-executable support is tested regularly on CI only on the following
 platforms:
 
 * Windows
-* macOS
+* macOS (arm64 only; x64 is not currently supported and is skipped in the
+  tests)
 * Linux (all distributions [supported by Node.js][] except Alpine and all
   architectures [supported by Node.js][] except s390x)
 
