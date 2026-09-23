@@ -321,10 +321,17 @@ There are two ways to write data to a stream:
   up front or can be expressed as an iterable.
 * **Writer** — access [`stream.writer`][] to push data incrementally. The
   writer exposes synchronous methods (`writeSync()`, `writevSync()`,
-  `endSync()`) that return immediately, as well as async equivalents
-  (`write()`, `writev()`, `end()`) that wait for drain when backpressured.
+  `endSync()`) that return immediately, as well as asynchronous counterparts
+  (`write()`, `writev()`, `end()`). The asynchronous `write()` and `writev()`
+  methods use the stream/iter strict backpressure policy: when the write buffer
+  is full, they reject with `ERR_INVALID_STATE` instead of waiting for capacity.
+  If a drain is already pending, `end()` waits for it before closing. Check
+  `writer.canWrite` before writing. To wait for capacity, use `ondrain()` from
+  `node:stream/iter`, then retry the write. The stream's `onblocked` callback
+  reports that transport flow control has blocked progress, but does not
+  signal that writer capacity is available again.
   `writeSync()` returns `false` when the write buffer is full; the caller
-  should wait for drain before retrying.
+  should wait with `ondrain()` before retrying.
 
 These two approaches are mutually exclusive for a given stream.
 
@@ -1861,6 +1868,19 @@ Either `'application'` or `'transport'`. Indicates the namespace of
 added: v23.8.0
 -->
 
+### `stream.opened`
+
+<!-- YAML
+added: v26.10.0
+-->
+
+* Type: {Promise}
+
+A promise that is immediately fulfilled, if the stream fits within
+flow control limits or fulfilled when the pending stream is created.
+It rejects, if a pending stream is closed with an error before being
+created.
+
 ### `stream.closed`
 
 <!-- YAML
@@ -2340,12 +2360,16 @@ The Writer has the following methods:
 
 * `writeSync(chunk)` — Synchronous write. Returns `true` if accepted,
   `false` if flow-controlled. Data is NOT accepted on `false`.
-* `write(chunk[, options])` — Async write with drain wait. `options.signal`
-  is checked at entry but not observed during the write.
+* `write(chunk[, options])` — Async write. Rejects with `ERR_INVALID_STATE`
+  when the stream is flow-controlled rather than waiting for capacity.
+  `options.signal` is checked at entry but not observed during the write.
 * `writevSync(chunks)` — Synchronous vectored write. All-or-nothing.
-* `writev(chunks[, options])` — Async vectored write.
+* `writev(chunks[, options])` — Async vectored write. Rejects with
+  `ERR_INVALID_STATE` when the stream is flow-controlled rather than waiting
+  for capacity.
 * `endSync()` — Synchronous close. Returns total bytes or `-1`.
-* `end([options])` — Async close.
+* `end([options])` — Async close. If a drain is already pending, waits for it
+  before closing.
 * `fail(reason)` — Errors the stream (sends `RESET_STREAM` to peer).
   When `reason` is a [`QuicError`][], its [`error.errorCode`][] is used
   as the wire code on the resulting `RESET_STREAM` frame; otherwise
@@ -2355,7 +2379,20 @@ The Writer has the following methods:
   See [`stream.destroy()`][] for a full-stream abort that also resets
   the readable side via `STOP_SENDING`.
 * `canWrite` — `true` if writes will be accepted, `false` if at capacity,
-  or `null` if closed/errored.
+  or `null` if closed/errored. When `writeSync()` returns `false`, use
+  `ondrain()` from `node:stream/iter` to wait before retrying. If `ondrain()`
+  returns `null`, no drain wait is available and the write should not be
+  retried.
+
+```mjs
+import { ondrain } from 'node:stream/iter';
+
+while (!writer.writeSync(chunk)) {
+  const drain = ondrain(writer);
+  if (drain === null) break;
+  await drain;
+}
+```
 
 The bytes from each `writeSync()` / `writevSync()` / `write()` / `writev()`
 input chunk are copied into an internal buffer, so the caller's source
@@ -2675,8 +2712,8 @@ added: v23.8.0
 
 The endpoint maintains an internal cache of validated socket addresses as a
 performance optimization. This option sets the maximum number of addresses
-that are cached. This is an advanced option that users typically won't have
-need to specify.
+that are cached. The value must be greater than `0`. This is an advanced option
+that users typically won't have need to specify.
 
 #### `endpointOptions.disableStatelessReset`
 
@@ -2948,10 +2985,10 @@ The ALPN (Application-Layer Protocol Negotiation) identifier(s).
 For **client** sessions, this is a single string specifying the protocol
 the client wants to use (e.g. `'h3'`).
 
-For **server** sessions, this is an array of protocol names in preference
-order that the server supports (e.g. `['h3', 'h3-29']`). During the TLS
-handshake, the server selects the first protocol from its list that the
-client also supports.
+For **server** sessions, this is a non-empty array of protocol names in
+preference order that the server supports (e.g. `['h3', 'h3-29']`).
+During the TLS handshake, the server selects the first protocol from its
+list that the client also supports.
 
 The negotiated ALPN determines which Application implementation is used
 for the session. `'h3'` and `'h3-*'` variants select the HTTP/3
@@ -3296,6 +3333,30 @@ Specifies the keep-alive timeout in milliseconds. When set to a non-zero
 value, PING frames will be sent automatically to keep the connection alive
 before the idle timeout fires. The value should be less than the effective
 idle timeout (`maxIdleTimeout` transport parameter) to be useful.
+
+#### `sessionOptions.truncatedReads`
+
+* Type: {string} One of `'error'` or `'ignore'`.
+* **Default:** `'error'`
+
+Controls how reading a stream reports a truncated read. A stream's read side
+can end without receiving a QUIC FIN, meaning the peer never signalled that
+the whole stream had been sent and the data received may be incomplete. This
+selects how the stream's async iterator reports this:
+
+* `'error'` - The default. Peers are expected to always send a FIN to end
+  their data explicitly, and so any truncation is an error. The iterator yields
+  the data that did arrive and then throws, so an incomplete stream can never
+  be mistaken for a complete one. Incomplete streams will either throw a
+  `ERR_QUIC_STREAM_RESET` carrying the peer's error code, a connection error,
+  or `ERR_QUIC_STREAM_ABORTED` for other cases.
+
+* `'ignore'` - The truncation itself is ignored: only a stream or connection
+  error is reported, and any clean abort/cancellation or similar simply ends
+  the stream. A non-zero peer reset, non-zero local stop-sending or connection
+  error still fails, but a truncation with no error at all (an idle timeout,
+  a graceful close, or a plain `stopSending()`) ends the read cleanly with the
+  data received. This matches `stream.closed`, which rejects only on an error.
 
 #### `sessionOptions.verifyPeer` (client only)
 

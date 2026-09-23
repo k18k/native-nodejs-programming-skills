@@ -202,8 +202,8 @@ added: v26.1.0
 When using the [Permission Model][], the process will not be able to use FFI
 APIs by default. Attempts to use FFI APIs will throw an `ERR_ACCESS_DENIED`
 exception unless the user explicitly passes the `--allow-ffi` flag when
-starting Node.js. The [`node:ffi`][] module also requires the
-`--experimental-ffi` flag and is only available in builds with FFI support.
+starting Node.js. The [`node:ffi`][] module is only available in builds with
+FFI support.
 
 Example:
 
@@ -213,7 +213,7 @@ const lib = new DynamicLibrary(`./mylib.${suffix}`);
 ```
 
 ```console
-$ node --permission --experimental-ffi index.js
+$ node --permission index.js
 Error: Access to this API has been restricted. Use --allow-ffi to manage permissions.
     at node:internal/main/run_main_module:17:47 {
   code: 'ERR_ACCESS_DENIED',
@@ -266,6 +266,26 @@ $ node --permission -r custom-require.js -r custom-require-2.js index.js
 process.permission.has('fs.read', 'index.js'); // true
 process.permission.has('fs.read', 'custom-require.js'); // true
 process.permission.has('fs.read', 'custom-require-2.js'); // true
+```
+
+### `--allow-fs-vfs`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1.1 - Active development
+
+When using the [Permission Model][], a [virtual file system][] cannot be
+mounted by default: [`vfs.mount()`][] throws `ERR_INVALID_STATE` unless the
+user explicitly passes the `--allow-fs-vfs` flag when starting Node.js.
+
+A mounted VFS serves paths that the file system permissions do not describe,
+so mounting one is gated on its own flag rather than on `--allow-fs-read` or
+`--allow-fs-write`.
+
+```console
+$ node --experimental-vfs --permission --allow-fs-vfs app.js
 ```
 
 ### `--allow-fs-write`
@@ -449,6 +469,115 @@ Error: Access to this API has been restricted
   permission: 'WorkerThreads'
 }
 ```
+
+### `--bench`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Starts the Node.js command-line benchmark runner. At least one explicit file or
+glob pattern is required:
+
+```console
+node --experimental-bench --bench benchmark.mjs
+node --experimental-bench --bench 'benchmarks/**/*.js'
+```
+
+The `--experimental-bench` flag is required to use this flag or any other
+`--bench-*` option.
+
+Quote glob patterns to prevent expansion by the shell. Matching files are
+sorted and executed serially. By default, each file runs in a separate child
+process. Benchmark files declare benchmarks using `node:bench`; they must not
+call `run()` themselves. See the [benchmark runner][] documentation for more
+details.
+
+This flag cannot be combined with `--test`, `--watch`, `--watch-path`,
+`--check`, `--eval`, or `--interactive`.
+
+### `--bench-isolation=mode`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Configures benchmark file isolation. When `mode` is `'process'`, each matching
+file runs in a separate child process. This is the default. Files are still run
+serially so their measured work does not overlap.
+
+When `mode` is `'none'`, all matching files and benchmarks run serially in the
+benchmark runner process. This reduces startup overhead but allows module,
+heap, and process state to carry between files. User writes to stdout or stderr
+also share destinations with benchmark reporters in this mode.
+
+The supported modes are `'process'` and `'none'`.
+
+### `--bench-name-pattern=pattern`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Only runs benchmarks whose full hierarchical name matches the JavaScript
+regular expression `pattern`. Non-matching benchmarks are reported as skipped.
+
+### `--bench-reporter-destination=destination`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Specifies the destination for the corresponding benchmark reporter. The value
+can be `stdout`, `stderr`, or a file path. A single reporter defaults to
+`stdout` when no destination is specified.
+
+### `--bench-reporter=reporter`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Specifies a benchmark reporter. The built-in reporters are `spec` and `json`.
+The `json` reporter emits newline-delimited JSON. A custom reporter can be
+specified using a module specifier resolved from the current working directory.
+
+This option can be repeated. When multiple reporters are specified, each must
+have a corresponding `--bench-reporter-destination`. The default reporter is
+`spec`.
+
+### `--bench-samples=count`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Overrides the maximum number of measured callback invocations for every
+selected benchmark. A benchmark may finish earlier by calling
+`context.done()`. `count` must be an integer between `1` and `4294967295`.
+
+### `--bench-warmup=count`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Overrides the number of unreported warmup callback invocations for every
+selected benchmark. `count` must be an integer between `0` and `4294967295`.
 
 ### `--build-sea=config`
 
@@ -885,6 +1014,17 @@ Enable [FIPS mode][] at startup. With OpenSSL 3, a configured provider named
 `fips` must be available and initialize successfully. With OpenSSL 1.1.1,
 Node.js must be built against a FIPS-capable OpenSSL.
 
+### `--enable-fips-indicator-events`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+Publish OpenSSL FIPS indicator results to the
+[`'crypto.fips.indicator'`][] diagnostics channel. This option requires OpenSSL
+3.4 or later. It does not enable [FIPS mode][] or change whether an operation
+is permitted.
+
 ### `--enable-source-maps`
 
 <!-- YAML
@@ -1073,6 +1213,16 @@ changes:
 
 Enable experimental import support for `.node` addons.
 
+### `--experimental-bench`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Enable the experimental `node:bench` module and command-line benchmark runner.
+
 ### `--experimental-config-file=path`, `--experimental-config-file`
 
 <!-- YAML
@@ -1244,6 +1394,17 @@ If present, Node.js will look for a
 `node.config.json` file in the current working directory and load it as a
 configuration file.
 
+### `--experimental-dtls`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Enable experimental support for the DTLS protocol. See the
+[dtls documentation][] for details.
+
 ### `--experimental-eventsource`
 
 <!-- YAML
@@ -1253,18 +1414,6 @@ added:
 -->
 
 Enable exposition of [EventSource Web API][] on the global scope.
-
-### `--experimental-ffi`
-
-<!-- YAML
-added: v26.1.0
--->
-
-> Stability: 1 - Experimental
-
-Enable the experimental [`node:ffi`][] module.
-
-This flag is only available in builds with FFI support.
 
 ### `--experimental-import-meta-resolve`
 
@@ -1542,6 +1691,14 @@ changes:
 
 Enable experimental WebAssembly System Interface (WASI) support.
 
+### `--experimental-web-worker`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+Enable experimental support for the Web Worker API.
+
 ### `--experimental-worker-inspection`
 
 <!-- YAML
@@ -1562,14 +1719,31 @@ added: v12.12.0
 
 Disable loading native addons that are not [context-aware][].
 
-### `--force-fips`
+### `--force-fips[=mode]`
 
 <!-- YAML
 added: v6.0.0
+changes:
+  - version: v26.9.0
+    pr-url: https://github.com/nodejs/node/pull/65645
+    description: Added the optional `provider` and `strict` modes.
 -->
 
 Enable [FIPS mode][] at startup and prevent it from being disabled from script
 code. The same OpenSSL requirements as [`--enable-fips`][] apply.
+
+An optional mode can be specified using `--force-fips=mode`:
+
+* `provider`: Preserve the OpenSSL FIPS provider's configured handling of
+  non-approved operations. This is the current default when the mode is
+  omitted.
+* `strict`: Reject non-approved operations reported through the OpenSSL FIPS
+  indicator callback. This mode requires OpenSSL 3.4 or later.
+
+The `strict` mode only covers operations reported through the callback for
+OpenSSL's default library context. It does not cover native addons that use
+another `OSSL_LIB_CTX` or another copy of `libcrypto`, nor operation-specific
+indicators that do not invoke the callback.
 
 ### `--force-node-api-uncaught-exceptions-policy`
 
@@ -2069,6 +2243,18 @@ changes:
 
 Disable using [syntax detection][] to determine module type.
 
+### `--no-experimental-ffi`
+
+<!-- YAML
+added: v26.1.0
+-->
+
+> Stability: 1 - Experimental
+
+Disable the experimental [`node:ffi`][] module.
+
+This flag is only available in builds with FFI support.
+
 ### `--no-experimental-global-navigator`
 
 <!-- YAML
@@ -2246,6 +2432,17 @@ added: v6.0.0
 -->
 
 Silence all process warnings (including deprecations).
+
+### `--no-worker-snapshot`
+
+<!-- YAML
+added: v26.9.0
+-->
+
+> Stability: 1 - Experimental
+
+Start worker threads by running the internal bootstrap from scratch instead of
+deserializing the bootstrapped context from the built-in startup snapshot.
 
 ### `--node-memory-debug`
 
@@ -2661,6 +2858,9 @@ forked processes, or clustered processes.
 <!-- YAML
 added: v22.0.0
 changes:
+  - version: v26.9.0
+    pr-url: https://github.com/nodejs/node/pull/64606
+    description: Passing `--run` without a command lists the available scripts.
   - version: v22.3.0
     pr-url: https://github.com/nodejs/node/pull/53032
     description: NODE_RUN_SCRIPT_NAME environment variable is added.
@@ -2676,6 +2876,15 @@ changes:
 
 This runs a specified command from a package.json's `"scripts"` object.
 If a missing `"command"` is provided, it will list the available scripts.
+
+Passing `--run` without a command lists the available scripts and exits
+with a non-zero exit code:
+
+```console
+$ node --run
+Available scripts are:
+  test: node --test
+```
 
 `--run` will traverse up to the root directory and finds a `package.json`
 file to run the command from.
@@ -3458,19 +3667,21 @@ When both are set, `--use-env-proxy` takes precedence.
 added:
  - v13.6.0
  - v12.17.0
+changes:
+  - version: v26.9.0
+    pr-url: https://github.com/nodejs/node/pull/65389
+    description: This option is now a no-op.
 -->
 
-Re-map the Node.js static code to large memory pages at startup. If supported on
-the target system, this will cause the Node.js static code to be moved onto 2
-MiB pages instead of 4 KiB pages.
+This option is no longer supported and a no-op. It used to re-map the Node.js
+static code to large memory pages at startup.
 
-The following values are valid for `mode`:
+It still accepts the following values for compatibility:
 
 * `off`: No mapping will be attempted. This is the default.
-* `on`: If supported by the OS, mapping will be attempted. Failure to map will
-  be ignored and a message will be printed to standard error.
-* `silent`: If supported by the OS, mapping will be attempted. Failure to map
-  will be ignored and will not be reported.
+* `on`: No mapping will be attempted and a message will be printed to
+  standard error stating it's no longer supported.
+* `silent`: Same as `off`.
 
 ### `--use-system-ca`
 
@@ -3561,6 +3772,78 @@ added: v0.1.3
 -->
 
 Print node's version.
+
+### `--vfs-load=source`
+
+<!-- YAML
+added: v26.10.0
+-->
+
+* `source` {string} A directory or an archive file to mount and run.
+
+Requires [`--experimental-vfs`][]. May be given at most once.
+
+Mounts `source` exactly as [`--vfs-mount`][] does, and additionally runs the
+entry point and all subsequent `require()`/`import` resolution against that
+mount rather than the real file system. The entry point is taken from the mount
+the same way `node <directory>` takes one: the mount's own `package.json`
+`"main"`, or `index.js`. Any positional command-line argument is the program's
+own (available from `process.argv[2]` onward), never an entry-point override.
+
+`process.argv[1]` reports `source` rather than the reserved mount point, since
+the mount point is an opaque implementation detail.
+
+Mounting the same source twice mounts it twice, at two separate mount points.
+The entry point then comes from the mount `--vfs-load` itself contributed, not
+from an earlier `--vfs-mount` of the same source.
+
+In worker threads `--vfs-load` mounts but does not load: a worker inherits the
+same mounts, in the same order, and runs its own entry point.
+
+`--vfs-load` is not permitted in [`NODE_OPTIONS`][]: which entry point runs is
+the command line's decision, and the environment must not be able to redirect
+it.
+
+```console
+$ node --experimental-vfs --vfs-load=app.zip
+$ node --experimental-vfs --vfs-mount=lib.zip --vfs-load=app.zip
+```
+
+### `--vfs-mount=source`
+
+<!-- YAML
+added: v26.10.0
+-->
+
+* `source` {string} A directory or an archive file to mount.
+
+Requires [`--experimental-vfs`][]. May be repeated to mount several sources.
+
+Mounts `source` as a virtual file system ([`node:vfs`][]). Each mount is placed
+at a reserved mount point assigned by Node.js, so mounts never shadow real
+paths and no target can be chosen. Mounting alone does not change the entry
+point; use [`--vfs-load`][] for the source to run from.
+
+`--vfs-mount` and [`--vfs-load`][] mount in the order they are written, so
+
+```console
+$ node --experimental-vfs --vfs-mount=a --vfs-load=b --vfs-mount=c
+```
+
+mounts `a`, `b` and `c` in that order and runs `b`. Mounts contributed by
+[`NODE_OPTIONS`][] are mounted before the command line's.
+
+The provider backing a source is chosen from the source itself rather than from
+its file name:
+
+* A directory is mounted with a [`RealFSProvider`][] rooted there.
+* A file whose bytes are a ZIP archive is mounted with a [`ZipProvider`][], so
+  an archive can carry any name.
+
+Providers registered with `vfs.registerProvider()` (typically from a module
+preloaded with [`--require`][] or [`--import`][]) are consulted first, in
+reverse registration order, and may claim directories as well as files. If no
+provider claims the source, Node.js exits with an error.
 
 ### `--watch`
 
@@ -3833,12 +4116,19 @@ one is included in the list below.
 * `--allow-child-process`
 * `--allow-ffi`
 * `--allow-fs-read`
+* `--allow-fs-vfs`
 * `--allow-fs-write`
 * `--allow-inspector`
 * `--allow-net`
 * `--allow-openssl-store`
 * `--allow-wasi`
 * `--allow-worker`
+* `--bench-isolation`
+* `--bench-name-pattern`
+* `--bench-reporter-destination`
+* `--bench-reporter`
+* `--bench-samples`
+* `--bench-warmup`
 * `--conditions`, `-C`
 * `--cpu-prof-dir`
 * `--cpu-prof-interval`
@@ -3850,15 +4140,17 @@ one is included in the list below.
 * `--disable-warning`
 * `--disable-wasm-trap-handler`
 * `--dns-result-order`
+* `--enable-fips-indicator-events`
 * `--enable-fips`
 * `--enable-network-family-autoselection`
 * `--enable-source-maps`
 * `--entry-url`
 * `--experimental-abortcontroller`
 * `--experimental-addon-modules`
+* `--experimental-bench`
 * `--experimental-detect-module`
+* `--experimental-dtls`
 * `--experimental-eventsource`
-* `--experimental-ffi`
 * `--experimental-import-meta-resolve`
 * `--experimental-import-text`
 * `--experimental-json-modules`
@@ -3876,6 +4168,7 @@ one is included in the list below.
 * `--experimental-vfs`
 * `--experimental-vm-modules`
 * `--experimental-wasi-unstable-preview1`
+* `--experimental-web-worker`
 * `--force-context-aware`
 * `--force-fips`
 * `--force-node-api-uncaught-exceptions-policy`
@@ -3903,6 +4196,7 @@ one is included in the list below.
 * `--no-addons`
 * `--no-async-context-frame`
 * `--no-deprecation`
+* `--no-experimental-ffi`
 * `--no-experimental-global-navigator`
 * `--no-experimental-repl-await`
 * `--no-experimental-sqlite`
@@ -3916,6 +4210,7 @@ one is included in the list below.
 * `--no-strip-types`
 * `--no-warnings`
 * `--no-webstorage`
+* `--no-worker-snapshot`
 * `--node-memory-debug`
 * `--openssl-config`
 * `--openssl-legacy-provider`
@@ -3990,6 +4285,7 @@ one is included in the list below.
 * `--use-openssl-ca`
 * `--use-system-ca`
 * `--v8-pool-size`
+* `--vfs-mount`
 * `--watch-kill-signal`
 * `--watch-path`
 * `--watch-preserve-output`
@@ -4486,6 +4782,7 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [V8 Inspector integration for Node.js]: debugger.md#v8-inspector-integration-for-nodejs
 [V8 JavaScript code coverage]: https://v8project.blogspot.com/2017/12/javascript-code-coverage.html
 [`"type"`]: packages.md#type
+[`'crypto.fips.indicator'`]: diagnostics_channel.md#event-cryptofipsindicator
 [`--allow-addons`]: #--allow-addons
 [`--allow-child-process`]: #--allow-child-process
 [`--allow-fs-read`]: #--allow-fs-read
@@ -4502,6 +4799,7 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [`--env-file-if-exists`]: #--env-file-if-existsfile
 [`--env-file`]: #--env-filefile
 [`--experimental-sea-config`]: single-executable-applications.md#1-generating-single-executable-preparation-blobs
+[`--experimental-vfs`]: #--experimental-vfs
 [`--heap-prof-dir`]: #--heap-prof-dir
 [`--import`]: #--importmodule
 [`--no-require-module`]: #--no-require-module
@@ -4513,6 +4811,8 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [`--require`]: #-r---require-module
 [`--use-env-proxy`]: #--use-env-proxy
 [`--use-system-ca`]: #--use-system-ca
+[`--vfs-load`]: #--vfs-loadsource
+[`--vfs-mount`]: #--vfs-mountsource
 [`AsyncLocalStorage`]: async_context.md#class-asynclocalstorage
 [`Buffer`]: buffer.md#class-buffer
 [`CRYPTO_secure_malloc_init`]: https://www.openssl.org/docs/man3.0/man3/CRYPTO_secure_malloc_init.html
@@ -4521,8 +4821,10 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [`NODE_OPTIONS`]: #node_optionsoptions
 [`NODE_USE_ENV_PROXY=1`]: #node_use_env_proxy1
 [`NO_COLOR`]: https://no-color.org
+[`RealFSProvider`]: vfs.md#class-realfsprovider
 [`Web Storage`]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API
 [`YoungGenerationSizeFromSemiSpaceSize`]: https://chromium.googlesource.com/v8/v8.git/+/refs/tags/10.3.129/src/heap/heap.cc#328
+[`ZipProvider`]: vfs.md#class-zipprovider
 [`crypto.createPrivateKey()`]: crypto.md#cryptocreateprivatekeykey
 [`dns.lookup()`]: dns.md#dnslookuphostname-options-callback
 [`dns.setDefaultResultOrder()`]: dns.md#dnssetdefaultresultorderorder
@@ -4542,7 +4844,9 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [`v8.startupSnapshot.addDeserializeCallback()`]: v8.md#v8startupsnapshotadddeserializecallbackcallback-data
 [`v8.startupSnapshot.setDeserializeMainFunction()`]: v8.md#v8startupsnapshotsetdeserializemainfunctioncallback-data
 [`v8.startupSnapshot` API]: v8.md#startup-snapshot-api
+[`vfs.mount()`]: vfs.md#vfsmount
 [asynchronous module customization hooks]: module.md#asynchronous-customization-hooks
+[benchmark runner]: bench.md#command-line-runner
 [captured by the built-in snapshot of Node.js]: https://github.com/nodejs/node/blob/b19525a33cc84033af4addd0f80acd4dc33ce0cf/test/parallel/test-bootstrap-modules.js#L24
 [collecting code coverage from tests]: test.md#collecting-code-coverage
 [conditional exports]: packages.md#conditional-exports
@@ -4550,6 +4854,7 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [debugger]: debugger.md
 [debugging security implications]: https://nodejs.org/learn/getting-started/debugging#security-implications
 [deprecation warnings]: deprecations.md#list-of-deprecated-apis
+[dtls documentation]: dtls.md
 [emit_warning]: process.md#processemitwarningwarning-options
 [environment_variables]: #environment-variables-1
 [filtering tests by name]: test.md#filtering-tests-by-name
@@ -4572,4 +4877,5 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [test runner execution model]: test.md#test-runner-execution-model
 [timezone IDs]: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 [tracking issue for user-land snapshots]: https://github.com/nodejs/node/issues/44014
+[virtual file system]: vfs.md
 [ways that `TZ` is handled in other environments]: https://www.gnu.org/software/libc/manual/html_node/TZ-Variable.html

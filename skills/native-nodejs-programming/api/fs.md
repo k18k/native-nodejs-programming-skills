@@ -1414,6 +1414,9 @@ behavior is similar to `cp dir1/ dir2/`.
 <!-- YAML
 added: v22.0.0
 changes:
+  - version: v26.9.0
+    pr-url: https://github.com/nodejs/node/pull/64003
+    description: Add support for the `maxDepth` option.
   - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62695
     description: Add support for the `followSymlinks` option.
@@ -1448,6 +1451,8 @@ changes:
     not supported.
   * `followSymlinks` {boolean} When `true`, symbolic links to directories are
     followed while expanding `**` patterns. **Default:** `false`.
+  * `maxDepth` {integer} Maximum number of directory levels to traverse.
+    The `cwd` directory has a depth of `0`. **Default:** `Infinity`.
   * `withFileTypes` {boolean} `true` if the glob should return paths as Dirents,
     `false` otherwise. **Default:** `false`.
 * Returns: {AsyncIterator} An AsyncIterator that yields the paths of files
@@ -3621,6 +3626,9 @@ descriptor. See [`fs.utimes()`][].
 <!-- YAML
 added: v22.0.0
 changes:
+  - version: v26.9.0
+    pr-url: https://github.com/nodejs/node/pull/64003
+    description: Add support for the `maxDepth` option.
   - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62695
     description: Add support for the `followSymlinks` option.
@@ -3653,6 +3661,8 @@ changes:
     `true` to exclude the item, `false` to include it. **Default:** `undefined`.
   * `followSymlinks` {boolean} When `true`, symbolic links to directories are
     followed while expanding `**` patterns. **Default:** `false`.
+  * `maxDepth` {integer} Maximum number of directory levels to traverse.
+    The `cwd` directory has a depth of `0`. **Default:** `Infinity`.
   * `withFileTypes` {boolean} `true` if the glob should return paths as Dirents,
     `false` otherwise. **Default:** `false`.
 
@@ -6261,6 +6271,9 @@ Synchronous version of [`fs.futimes()`][]. Returns `undefined`.
 <!-- YAML
 added: v22.0.0
 changes:
+  - version: v26.9.0
+    pr-url: https://github.com/nodejs/node/pull/64003
+    description: Add support for the `maxDepth` option.
   - version: v26.1.0
     pr-url: https://github.com/nodejs/node/pull/62695
     description: Add support for the `followSymlinks` option.
@@ -6292,6 +6305,8 @@ changes:
     `true` to exclude the item, `false` to include it. **Default:** `undefined`.
   * `followSymlinks` {boolean} When `true`, symbolic links to directories are
     followed while expanding `**` patterns. **Default:** `false`.
+  * `maxDepth` {integer} Maximum number of directory levels to traverse.
+    The `cwd` directory has a depth of `0`. **Default:** `Infinity`.
   * `withFileTypes` {boolean} `true` if the glob should return paths as Dirents,
     `false` otherwise. **Default:** `false`.
 * Returns: {string\[]} paths of files that match the pattern.
@@ -6510,6 +6525,20 @@ with the [`using`][] syntax.
 
 The optional `options` argument can be a string specifying an encoding, or an
 object with an `encoding` property specifying the character encoding to use.
+
+### `fs.openAsBlobSync(path[, options])`
+
+<!-- YAML
+added: v26.10.0
+-->
+
+* `path` {string|Buffer|URL}
+* `options` {Object}
+  * `type` {string} An optional mime type for the blob.
+* Returns: {Blob}
+
+For detailed information, see the documentation of the Promise-returning
+version of this API: [`fs.openAsBlob()`][].
 
 ### `fs.opendirSync(path[, options])`
 
@@ -7298,8 +7327,9 @@ Asynchronously read the next directory entry via readdir(3) as an
 A promise is returned that will be fulfilled with an {fs.Dirent}, or `null`
 if there are no more directory entries to read.
 
-Directory entries returned by this function are in no particular order as
-provided by the operating system's underlying directory mechanisms.
+For directory reads handled by the native file system, directory entries
+returned by this function are in no particular order as provided by the
+operating system's underlying directory mechanisms.
 Entries added or removed while iterating over the directory might not be
 included in the iteration results.
 
@@ -9415,6 +9445,7 @@ the file contents.
 [`fs.mkdir()`]: #fsmkdirpath-options-callback
 [`fs.mkdtemp()`]: #fsmkdtempprefix-options-callback
 [`fs.open()`]: #fsopenpath-flags-mode-callback
+[`fs.openAsBlob()`]: #fsopenasblobpath-options
 [`fs.opendir()`]: #fsopendirpath-options-callback
 [`fs.opendirSync()`]: #fsopendirsyncpath-options
 [`fs.read()`]: #fsreadfd-buffer-offset-length-position-callback
