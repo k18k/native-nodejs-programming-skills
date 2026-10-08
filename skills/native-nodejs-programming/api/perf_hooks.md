@@ -854,13 +854,17 @@ added:
   - v20.18.0
 -->
 
-* Returns: {Object}
+* Type: {Object}
   * `loopCount` {number} Number of event loop iterations.
   * `events` {number} Number of events that have been processed by the event handler.
   * `eventsWaiting` {number} Number of events that were waiting to be processed when the event provider was called.
 
 This is a wrapper to the `uv_metrics_info` function.
 It returns the current set of event loop metrics.
+
+The values are exact up to `Number.MAX_SAFE_INTEGER`. Use
+[`performanceNodeTiming.uvMetricsInfoBigInt`][] to obtain the full 64-bit
+values reported by libuv.
 
 It is recommended to use this property inside a function whose execution was
 scheduled using `setImmediate` to avoid collecting metrics before finishing all
@@ -879,6 +883,41 @@ import { performance } from 'node:perf_hooks';
 
 setImmediate(() => {
   console.log(performance.nodeTiming.uvMetricsInfo);
+});
+```
+
+### `performanceNodeTiming.uvMetricsInfoBigInt`
+
+<!-- YAML
+added: v26.11.0
+-->
+
+* Type: {Object}
+  * `loopCount` {bigint} Number of event loop iterations.
+  * `events` {bigint} Number of events that have been processed by the event handler.
+  * `eventsWaiting` {bigint} Number of events that were waiting to be processed when the event provider was called.
+
+The same as [`performanceNodeTiming.uvMetricsInfo`][], except that the values
+are {bigint}s carrying the full 64-bit range reported by libuv.
+
+Because `JSON.stringify()` cannot serialize {bigint} values, this property is
+not enumerable and is not included in the output of
+`performanceNodeTiming.toJSON()`. Copies of `performance.nodeTiming` made by
+spreading its enumerable properties, for example, remain serializable.
+
+```cjs
+const { performance } = require('node:perf_hooks');
+
+setImmediate(() => {
+  console.log(performance.nodeTiming.uvMetricsInfoBigInt);
+});
+```
+
+```mjs
+import { performance } from 'node:perf_hooks';
+
+setImmediate(() => {
+  console.log(performance.nodeTiming.uvMetricsInfoBigInt);
 });
 ```
 
@@ -1777,6 +1816,11 @@ console.log(snapshot.percentile(99));
 
 <!-- YAML
 added: v26.9.0
+changes:
+  - version: v26.11.0
+    pr-url: https://github.com/nodejs/node/pull/66098
+    description: Format version 2 is supported. Unknown keys in version 2
+                 data are ignored.
 -->
 
 * `data` {Uint8Array} A CBOR-encoded histogram previously produced by
@@ -1786,6 +1830,9 @@ added: v26.9.0
 Reconstructs a histogram from a CBOR-encoded `Uint8Array`. The returned
 histogram is a full {RecordableHistogram} with all bucket data, configuration,
 and EWMA state restored. New values can be recorded into it.
+
+Data in any format version produced by [`histogram.export()`][] can be
+imported. See [histogram export format compatibility][] for details.
 
 ```js
 const { createHistogram, importHistogram } = require('node:perf_hooks');
@@ -1879,6 +1926,9 @@ are not guaranteed to reflect any correct state of the event loop.
 <!-- YAML
 added: v11.10.0
 changes:
+  - version: v26.11.0
+    pr-url: https://github.com/nodejs/node/pull/66115
+    description: Added the `lowest`, `highest`, and `figures` options.
   - version: v26.5.0
     pr-url: https://github.com/nodejs/node/pull/62935
     description: Added the `samplePerIteration` option.
@@ -1890,6 +1940,14 @@ changes:
   * `resolution` {number} The sampling rate in milliseconds for interval-based
     sampling. Must be greater than zero. This option is ignored when
     `samplePerIteration` is `true`. **Default:** `10`.
+  * `lowest` {number|bigint} The lowest discernible delay, in nanoseconds. Must
+    be an integer value greater than `0`. **Default:** `1` when
+    `samplePerIteration` is `true`, otherwise `1000`.
+  * `highest` {number|bigint} The highest recordable delay, in nanoseconds.
+    Must be an integer value that is equal to or greater than two times
+    `lowest`. **Default:** `2n ** 63n - 1n`.
+  * `figures` {number} The number of accuracy digits. Must be an integer
+    between `1` and `5`. **Default:** `3`.
 * Returns: {ELDHistogram}
 
 _This property is an extension by Node.js. It is not available in Web browsers._
@@ -1904,6 +1962,16 @@ the histogram does not keep the loop alive or force additional iterations when
 the application is idle.
 The two sampling modes produce significantly different results and should not
 be compared directly.
+
+The `lowest`, `highest`, and `figures` options configure the histogram as they
+do for [`perf_hooks.createHistogram()`][]. `lowest` must be greater than `0`
+because an event loop delay of zero is not possible: the event loop has a
+minimal overhead, and the measurement itself depends on the event loop turning.
+Delays greater than `highest` are not recorded, and are counted by
+[`histogram.exceeds`][] instead. With interval-based sampling, every sample
+includes the `resolution`, so `highest` should be well above
+`resolution * 1e6`. The histogram's memory use depends on these options, not
+on the number of samples.
 
 ```mjs
 import { monitorEventLoopDelay } from 'node:perf_hooks';
@@ -2138,6 +2206,52 @@ added: v26.8.0
 Returns the number of recorded values that fall within the equivalent
 value range of the given value.
 
+### `histogram.diff(other)`
+
+<!-- YAML
+added: v26.11.0
+-->
+
+* `other` {Histogram} An earlier snapshot of this histogram.
+* Returns: {Histogram}
+
+Returns a new {Histogram} containing the values recorded in this histogram after
+`other` was taken. Neither histogram is changed. To get the values recorded
+during each interval without calling `reset()`, compute each difference from a
+snapshot and keep that snapshot as the baseline for the next interval:
+
+```js
+const { monitorEventLoopDelay } = require('node:perf_hooks');
+
+const histogram = monitorEventLoopDelay();
+histogram.enable();
+let previous = histogram.snapshot();
+
+setInterval(() => {
+  const current = histogram.snapshot();
+  // After a reset, use everything recorded since the reset.
+  const delta = current.resetCount === previous.resetCount ?
+    current.diff(previous) : current;
+  console.log(delta.percentile(99));
+  previous = current;
+}, 10_000);
+```
+
+The `count`, `exceeds`, and bucket counts of the returned histogram are the
+differences between the two histograms. Its `min` and `max` are computed from
+the buckets of the difference, it has no EWMA state, and its `resetCount` is
+`0`.
+
+This method throws:
+
+* `ERR_INVALID_ARG_VALUE` if `other` has a different `lowest`, `highest`, or
+  `figures` configuration.
+* `ERR_INVALID_STATE` if values have been removed from this histogram since
+  `other` was taken, which is the case when the `resetCount` of the two
+  histograms differs.
+* `ERR_INVALID_ARG_VALUE` if `other` contains values that are not in this
+  histogram, for example because the histograms were passed in the wrong order.
+
 ### `histogram.exceeds`
 
 <!-- YAML
@@ -2146,8 +2260,8 @@ added: v11.10.0
 
 * Type: {number}
 
-The number of times the event loop delay exceeded the maximum 1 hour event
-loop delay threshold.
+The number of values that were not recorded because they exceeded the
+histogram's highest recordable value.
 
 ### `histogram.exceedsBigInt`
 
@@ -2159,13 +2273,17 @@ added:
 
 * Type: {bigint}
 
-The number of times the event loop delay exceeded the maximum 1 hour event
-loop delay threshold.
+The number of values that were not recorded because they exceeded the
+histogram's highest recordable value.
 
 ### `histogram.export()`
 
 <!-- YAML
 added: v26.9.0
+changes:
+  - version: v26.11.0
+    pr-url: https://github.com/nodejs/node/pull/66098
+    description: The output uses format version 2.
 -->
 
 * Returns: {Uint8Array}
@@ -2184,7 +2302,7 @@ The CBOR payload is a map with integer keys:
 
 | Key | Type    | Field                                         |
 | --- | ------- | --------------------------------------------- |
-| 0   | uint    | Format version (currently 1)                  |
+| 0   | uint    | Format version (currently 2)                  |
 | 1   | uint    | Lowest discernible value                      |
 | 2   | uint    | Highest trackable value                       |
 | 3   | uint    | Significant figures                           |
@@ -2198,6 +2316,23 @@ The CBOR payload is a map with integer keys:
 | 11  | map     | EWMA state (omitted when disabled)            |
 
 Any standard CBOR decoder can parse the output.
+
+#### Histogram export format compatibility
+
+[`perf_hooks.importHistogram()`][] accepts every format version that
+`histogram.export()` has produced:
+
+* Version 1 was produced by Node.js v26.9.0. Data with a version 1 key, or
+  without a version key, is imported with the original semantics: keys
+  that are not listed above are rejected.
+* Version 2 has the same layout as version 1. Keys that are not recognized
+  are ignored, so later versions of Node.js can add fields to version 2
+  data without changing the version, and the data remains importable.
+
+Data with any other version is rejected.
+
+When the total count, min, or max value is absent, it is derived from the
+bucket counts. A total count that is present must match the bucket counts.
 
 ### `histogram.ewmaMean`
 
@@ -2572,7 +2707,21 @@ boundaries are equal has an infinite density.
 added: v11.10.0
 -->
 
-Resets the collected histogram data.
+Resets the collected histogram data and increments `histogram.resetCount`.
+
+### `histogram.resetCount`
+
+<!-- YAML
+added: v26.11.0
+-->
+
+* Type: {number}
+
+The number of times values have been removed from this histogram by `reset()`
+or, for a {RecordableHistogram}, `subtract()`. A snapshot has the `resetCount`
+of its source at the time it was taken, so comparing the `resetCount` of two
+snapshots shows whether the source was reset between them. See
+[`histogram.diff()`][].
 
 ### `histogram.skewness`
 
@@ -2586,6 +2735,38 @@ The skewness of the recorded values. Measures the asymmetry of the
 distribution. A positive value indicates a right-skewed distribution
 (longer right tail, common for latency data); a negative value
 indicates a left-skewed distribution.
+
+### `histogram.snapshot()`
+
+<!-- YAML
+added: v26.11.0
+-->
+
+* Returns: {Histogram}
+
+Returns a new, independent {Histogram} containing a copy of this histogram's
+current state: its configuration, recorded values, `exceeds` count, and EWMA
+state. Values recorded into this histogram after this method returns, and later
+calls to `reset()`, do not change the returned histogram. This provides a stable
+view of a histogram that is still recording, such as an enabled {ELDHistogram}.
+
+Values cannot be recorded into the returned histogram. Taking a snapshot copies
+every bucket, so both its time and memory cost depend on the histogram's
+`lowest`, `highest`, and `figures` configuration rather than on the number of
+recorded values.
+
+```js
+const { monitorEventLoopDelay } = require('node:perf_hooks');
+
+const histogram = monitorEventLoopDelay();
+histogram.enable();
+
+setTimeout(() => {
+  const snapshot = histogram.snapshot();
+  console.log(snapshot.percentile(99));
+  histogram.disable();
+}, 1000);
+```
 
 ### `histogram.stddev`
 
@@ -2698,9 +2879,17 @@ Adds the values from `other` to this histogram.
 added:
   - v15.9.0
   - v14.18.0
+changes:
+  - version: v26.11.0
+    pr-url: https://github.com/nodejs/node/pull/66114
+    description: Recording `0` is now supported.
 -->
 
-* `val` {number|bigint} The amount to record in the histogram.
+* `val` {number|bigint} The amount to record in the histogram. Must be an
+  integer greater than or equal to `0`.
+
+Values smaller than the histogram's `lowest` option, including `0`, might not
+be distinguishable from each other.
 
 ### `histogram.recordDelta()`
 
@@ -2717,9 +2906,14 @@ previous call to `recordDelta()` and records that amount in the histogram.
 
 <!-- YAML
 added: v26.8.0
+changes:
+  - version: v26.11.0
+    pr-url: https://github.com/nodejs/node/pull/66114
+    description: Recording `0` is now supported.
 -->
 
-* `val` {number|bigint} The value to record.
+* `val` {number|bigint} The value to record. Must be an integer greater than or
+  equal to `0`.
 * `expectedInterval` {number|bigint} The expected recording interval.
 
 Records a value with coordinated omission correction. When a system stall
@@ -2738,7 +2932,7 @@ added: v26.8.0
 
 Subtracts the values of `other` from this histogram. Both histograms should
 have compatible configurations. Bucket counts that would become negative
-are clamped to zero.
+are clamped to zero. Increments `histogram.resetCount`.
 
 ## Class: `SlidingWindowHistogram`
 
@@ -2760,7 +2954,8 @@ call `snapshot()` to materialize the current window as a {Histogram}.
 added: v26.10.0
 -->
 
-* `val` {number|bigint} The amount to record.
+* `val` {number|bigint} The amount to record. Must be an integer greater than or
+  equal to `0`.
 
 Records `val` in the current chunk. For a count-based window, every call that
 reaches the native histogram counts toward rotation, including values which
@@ -3217,13 +3412,19 @@ dns.promises.resolve('localhost');
 [Worker threads]: worker_threads.md#worker-threads
 [`'exit'`]: process.md#event-exit
 [`child_process.spawnSync()`]: child_process.md#child_processspawnsynccommand-args-options
+[`histogram.diff()`]: #histogramdiffother
+[`histogram.exceeds`]: #histogramexceeds
 [`histogram.export()`]: #histogramexport
+[`perf_hooks.createHistogram()`]: #perf_hookscreatehistogramoptions
 [`perf_hooks.createSlidingWindowHistogram()`]: #perf_hookscreateslidingwindowhistogramoptions
 [`perf_hooks.eventLoopUtilization()`]: #perf_hookseventlooputilizationutilization1-utilization2
 [`perf_hooks.importHistogram()`]: #perf_hooksimporthistogramdata
 [`perf_hooks.monitorEventLoopDelay()`]: #perf_hooksmonitoreventloopdelayoptions
 [`perf_hooks.timerify()`]: #perf_hookstimerifyfn-options
+[`performanceNodeTiming.uvMetricsInfoBigInt`]: #performancenodetiminguvmetricsinfobigint
+[`performanceNodeTiming.uvMetricsInfo`]: #performancenodetiminguvmetricsinfo
 [`process.hrtime()`]: process.md#processhrtimetime
 [`timeOrigin`]: https://w3c.github.io/hr-time/#dom-performance-timeorigin
 [`window.performance.toJSON`]: https://developer.mozilla.org/en-US/docs/Web/API/Performance/toJSON
 [`window.performance`]: https://developer.mozilla.org/en-US/docs/Web/API/Window/performance
+[histogram export format compatibility]: #histogram-export-format-compatibility
