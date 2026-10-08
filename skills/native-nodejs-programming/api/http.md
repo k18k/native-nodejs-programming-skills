@@ -4297,6 +4297,13 @@ the following events will be emitted in the following order:
   `'Error: aborted'` and code `'ECONNRESET'`
 * `'close'` on the `res` object
 
+If a socket error (such as a TLS error) causes the premature close, that error
+is emitted on the request before the close. The error emitted on the incomplete
+response retains the message `'aborted'` and code `'ECONNRESET'`, with the original
+socket error available as its `cause`. This also applies when the original socket
+error has code `'ECONNRESET'`. If no underlying error is available, the response
+error has no `cause` property.
+
 If `req.destroy()` is called before a socket is assigned, the following
 events will be emitted in the following order:
 
@@ -4324,7 +4331,8 @@ events will be emitted in the following order:
 * `'aborted'` on the `res` object
 * `'close'`
 * `'error'` on the `res` object with an error with message `'Error: aborted'`
-  and code `'ECONNRESET'`, or the error with which `req.destroy()` was called
+  and code `'ECONNRESET'`. If an error was passed to `req.destroy()`, it is
+  available as the response error's `cause`.
 * `'close'` on the `res` object
 
 If `req.abort()` is called before a socket is assigned, the following
@@ -4366,6 +4374,89 @@ Passing an `AbortSignal` and then calling `abort()` on the corresponding
 request. Specifically, the `'error'` event will be emitted with an error with
 the message `'AbortError: The operation was aborted'`, the code `'ABORT_ERR'`
 and the `cause`, if one was provided.
+
+## `http.isValidHeaderName(name)`
+
+<!-- YAML
+added: v26.11.0
+-->
+
+* `name` {any}
+* Returns: {boolean}
+
+Returns `true` if `name` is a valid HTTP header name (a non-empty string that
+is an HTTP [token][]), and `false` otherwise. This is the same check that
+[`http.validateHeaderName()`][] performs, but the result is returned instead of
+an error being thrown, so it is suitable for use in hot paths where invalid
+input is expected.
+
+HTTP methods are also tokens, so this function can validate them as well.
+
+```mjs
+import { isValidHeaderName } from 'node:http';
+
+console.log(isValidHeaderName('content-type')); // true
+console.log(isValidHeaderName('X-Request-Id')); // true
+console.log(isValidHeaderName('')); // false
+console.log(isValidHeaderName('bad header')); // false
+console.log(isValidHeaderName(42)); // false
+```
+
+```cjs
+const { isValidHeaderName } = require('node:http');
+
+console.log(isValidHeaderName('content-type')); // true
+console.log(isValidHeaderName('X-Request-Id')); // true
+console.log(isValidHeaderName('')); // false
+console.log(isValidHeaderName('bad header')); // false
+console.log(isValidHeaderName(42)); // false
+```
+
+## `http.isValidHeaderValue(value[, options])`
+
+<!-- YAML
+added: v26.11.0
+-->
+
+* `value` {any}
+* `options` {Object}
+  * `httpValidation` {string} Validation strictness, one of `'strict'` or
+    `'relaxed'`. These have the same meaning as the `httpValidation` option of
+    [`http.createServer()`][] and [`http.request()`][]. **Default:** `'strict'`.
+* Returns: {boolean}
+
+Returns `true` if `value` is a valid HTTP header value, and `false` otherwise.
+With the default options this is the same check that
+[`http.validateHeaderValue()`][] performs, but the result is returned instead
+of an error being thrown.
+
+`undefined` and symbols are never valid header values. Other non-string
+values are converted to strings before being checked, as they are when passed
+to [`outgoingMessage.setHeader(name, value)`][].
+
+Passing an invalid `options` argument throws.
+
+```mjs
+import { isValidHeaderValue } from 'node:http';
+
+console.log(isValidHeaderValue('text/html')); // true
+console.log(isValidHeaderValue(123)); // true
+console.log(isValidHeaderValue(undefined)); // false
+console.log(isValidHeaderValue('a\r\nb')); // false
+console.log(isValidHeaderValue('a\x01b')); // false
+console.log(isValidHeaderValue('a\x01b', { httpValidation: 'relaxed' })); // true
+```
+
+```cjs
+const { isValidHeaderValue } = require('node:http');
+
+console.log(isValidHeaderValue('text/html')); // true
+console.log(isValidHeaderValue(123)); // true
+console.log(isValidHeaderValue(undefined)); // false
+console.log(isValidHeaderValue('a\r\nb')); // false
+console.log(isValidHeaderValue('a\x01b')); // false
+console.log(isValidHeaderValue('a\x01b', { httpValidation: 'relaxed' })); // true
+```
 
 ## `http.validateHeaderName(name[, label])`
 
@@ -4759,6 +4850,8 @@ const agent2 = new http.Agent({ proxyEnv: process.env });
 [`http.globalAgent`]: #httpglobalagent
 [`http.request()`]: #httprequestoptions-callback
 [`http.setGlobalProxyFromEnv()`]: #httpsetglobalproxyfromenvproxyenv
+[`http.validateHeaderName()`]: #httpvalidateheadernamename-label
+[`http.validateHeaderValue()`]: #httpvalidateheadervaluename-value
 [`message.headers`]: #messageheaders
 [`message.rawHeaders`]: #messagerawheaders
 [`message.socket`]: #messagesocket
@@ -4821,3 +4914,4 @@ const agent2 = new http.Agent({ proxyEnv: process.env });
 [information event]: #event-information
 [initial delay]: net.md#socketsetkeepaliveenable-initialdelay-interval-count
 [request target]: https://datatracker.ietf.org/doc/html/rfc9112#section-3.2
+[token]: https://datatracker.ietf.org/doc/html/rfc9110#section-5.6.2
